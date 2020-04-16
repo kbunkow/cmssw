@@ -12,6 +12,8 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
 
+dumpHitsFileName = 'OMTFHits_pats0x00031_oldSample_files_1_test' #'OMTFHits_pats0x00031_newerSample_files_1_100'
+
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
        #suppressInfo       = cms.untracked.vstring('AfterSource', 'PostModule'),
@@ -24,7 +26,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x0007_oldSample_10Files'),
+                         filename  = cms.untracked.string('log_' + dumpHitsFileName),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -79,7 +81,7 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 5 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
@@ -184,18 +186,29 @@ process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
+process.simBayesOmtfDigis.dumpHitsToROOT = cms.bool(False)
+process.simBayesOmtfDigis.dumpHitsFileName = cms.string(dumpHitsFileName + '.root')
 process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
+process.simBayesOmtfDigis.patternsPtAssignment = cms.bool(True)
+process.simBayesOmtfDigis.gpResultsToPtFile = cms.string("gpResultsToPt_Patterns_0x00031.txt") 
 
-process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
-process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
-process.simBayesOmtfDigis.generatePatterns = cms.bool(True)
-process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0007_oldSample_10Files.xml")
+
+#process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00031_oldSample_10Files.xml")
+#process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0006_2_oldSample_10Files.xml") #TODO!!!!!!!!!!!!
+
+#process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
+process.simBayesOmtfDigis.generatePatterns = cms.bool(False)
+#process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0005_1.xml")
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(5) #valid values are 0, 1, 2, 3, 5
+process.simBayesOmtfDigis.sorterType = cms.string("byLLH") #TODO
+#process.simBayesOmtfDigis.sorterType = cms.string("byNhitsByLLH")
+
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
