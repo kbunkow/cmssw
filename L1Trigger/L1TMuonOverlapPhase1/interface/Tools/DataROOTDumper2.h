@@ -25,9 +25,7 @@
 class TTree;
 
 struct OmtfEvent {
-
 public:
-
   double muonPt = 0, muonEta = 0, muonPhi = 0;
   int muonCharge = 0;
 
@@ -51,27 +49,29 @@ public:
         short phiDist = 0;
       };
     };
-
   };
 
   std::vector<unsigned long> hits;
 
-  boost::multi_array<float, 2> omtfGpResultsPdfSum; //[iREfHit][iGp]
-  boost::multi_array<unsigned int, 2> omtfGpResultsFiredLayers; //[iREfHit][iGp]
+  boost::multi_array<float, 2> omtfGpResultsPdfSum;              //[iREfHit][iGp]
+  boost::multi_array<unsigned int, 2> omtfGpResultsFiredLayers;  //[iREfHit][iGp]
 
-  OmtfEvent(unsigned int nRefHits, unsigned int nGoldenPatterns):
-    omtfGpResultsPdfSum(boost::extents[nRefHits][nGoldenPatterns]),
-    omtfGpResultsFiredLayers(boost::extents[nRefHits][nGoldenPatterns]) {}
+  OmtfEvent(unsigned int nRefHits, unsigned int nGoldenPatterns)
+      : omtfGpResultsPdfSum(boost::extents[nRefHits][nGoldenPatterns]),
+        omtfGpResultsFiredLayers(boost::extents[nRefHits][nGoldenPatterns]) {}
 };
 
-class DataROOTDumper2: public PatternOptimizerBase {
+class DataROOTDumper2 : public PatternOptimizerBase {
 public:
-  DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-         const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
+  DataROOTDumper2(const edm::ParameterSet& edmCfg,
+                  const OMTFConfiguration* omtfConfig,
+                  const std::vector<std::shared_ptr<GoldenPattern> >& gps,
+                  std::string rootFileName);
 
   virtual ~DataROOTDumper2();
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  virtual void observeEventEnd(const edm::Event& iEvent,
+                               std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
 
   virtual void endJob();
 
@@ -93,7 +93,7 @@ private:
 
   bool dumpGpResults = false;
 
-  GpResultsToPt* gpResultsToPt = nullptr; //TODO move to OmtfProcessor
+  GpResultsToPt* gpResultsToPt = nullptr;  //TODO move to OmtfProcessor
 };
 
 #endif /* INTERFACE_TOOLS_DATAROOTDUMPER2_H_ */

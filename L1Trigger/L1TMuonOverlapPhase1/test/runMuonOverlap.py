@@ -39,7 +39,7 @@ process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/g/gflouris/public/SingleMuPt6180_noanti_10k_eta1.root')
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')    
  #fileNames = cms.untracked.vstring('file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root')
- fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")                     
+                        fileNames = cms.untracked.vstring("file:///eos/cms/store/user/folguera/P2L1TUpgrade/Mu_FlatPt2to100-pythia8-gun_file.root")
  )
 	                    
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
@@ -71,7 +71,7 @@ process.load('L1Trigger.L1TMuonOverlapPhase1.simBayesOmtfDigis_cfi')
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(True)
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
+process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
@@ -89,9 +89,16 @@ process.L1TMuonSeq = cms.Sequence( process.esProd
 process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 
 process.out = cms.OutputModule("PoolOutputModule", 
-   fileName = cms.untracked.string("l1tomtf_superprimitives1.root")
+                               fileName = cms.untracked.string("l1tomtf_superprimitives1.root"),
+                               outputCommands=cms.untracked.vstring(
+                                   'drop *',
+                                   "keep *_dtTrigger*_*_*",
+                                   "keep *_simDtTrigger*_*_*",
+                                   "keep *_simBayesOmtfDigis_OMTF_L1TMuonEmulation",
+                                   "keep *_genParticles_*_*", 
+                                   )
 )
 
-#process.output_step = cms.EndPath(process.out)
-#process.schedule = cms.Schedule(process.L1TMuonPath)
-#process.schedule.extend([process.output_step])
+process.output_step = cms.EndPath(process.out)
+process.schedule = cms.Schedule(process.L1TMuonPath)
+process.schedule.extend([process.output_step])

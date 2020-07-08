@@ -19,29 +19,39 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
 
-
-class DtPhase2DigiToStubsConverter: public DigiToStubsConverterBase {
+class DtPhase2DigiToStubsConverter : public DigiToStubsConverterBase {
 public:
-  DtPhase2DigiToStubsConverter(edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh, edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh):
-    inputTokenDtPh(inputTokenDtPh), inputTokenDtTh(inputTokenDtTh) {};
+  DtPhase2DigiToStubsConverter(edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh,
+                               edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh)
+      : inputTokenDtPh(inputTokenDtPh), inputTokenDtTh(inputTokenDtTh){};
 
-  virtual ~DtPhase2DigiToStubsConverter() {};
+  virtual ~DtPhase2DigiToStubsConverter(){};
 
   //virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf) {};
 
   virtual void loadDigis(const edm::Event& event);
 
-  virtual void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo);
+  virtual void makeStubs(
+      MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo);
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
-  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1Phase2MuDTPhDigi& digi, const L1MuDTChambThContainer *dtThDigis,
-      unsigned int iProcessor, l1t::tftype procTyp) = 0;
+  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
+                            const L1Phase2MuDTPhDigi& digi,
+                            const L1MuDTChambThContainer* dtThDigis,
+                            unsigned int iProcessor,
+                            l1t::tftype procTyp) = 0;
 
-  virtual void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
-      unsigned int iProcessor, l1t::tftype procTyp) = 0;
+  virtual void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
+                             const L1MuDTChambThDigi& thetaDigi,
+                             unsigned int iProcessor,
+                             l1t::tftype procTyp) = 0;
 
-  virtual bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) {return true;}
+  virtual bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) {
+    return true;
+  }
+
 protected:
   bool mergePhiAndTheta = true;
 
@@ -52,43 +62,53 @@ protected:
   edm::Handle<L1MuDTChambThContainer> dtThDigis;
 };
 
-
-class DtPhase2DigiToStubsConverterOmtf: public DtPhase2DigiToStubsConverter {
+class DtPhase2DigiToStubsConverterOmtf : public DtPhase2DigiToStubsConverter {
 public:
-  DtPhase2DigiToStubsConverterOmtf(const OMTFConfiguration* config, const OmtfAngleConverter* angleConverter, edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh, edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh):
-    DtPhase2DigiToStubsConverter(inputTokenDtPh, inputTokenDtTh), config(config), angleConverter(angleConverter) {};
+  DtPhase2DigiToStubsConverterOmtf(const OMTFConfiguration* config,
+                                   const OmtfPhase2AngleConverter* angleConverter,
+                                   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh,
+                                   edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh)
+      : DtPhase2DigiToStubsConverter(inputTokenDtPh, inputTokenDtTh), config(config), angleConverter(angleConverter){};
 
-  virtual ~DtPhase2DigiToStubsConverterOmtf() {};
+  virtual ~DtPhase2DigiToStubsConverterOmtf(){};
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
-  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1Phase2MuDTPhDigi& digi, const L1MuDTChambThContainer *dtThDigis,
-      unsigned int iProcessor, l1t::tftype procTyp);
+  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
+                            const L1Phase2MuDTPhDigi& digi,
+                            const L1MuDTChambThContainer* dtThDigis,
+                            unsigned int iProcessor,
+                            l1t::tftype procTyp);
 
-  virtual void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
-      unsigned int iProcessor, l1t::tftype procTyp);
+  virtual void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
+                             const L1MuDTChambThDigi& thetaDigi,
+                             unsigned int iProcessor,
+                             l1t::tftype procTyp);
 
   virtual bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType);
 
 private:
-  const OMTFConfiguration* config =  nullptr;
-  const OmtfAngleConverter* angleConverter;
+  const OMTFConfiguration* config = nullptr;
+  const OmtfPhase2AngleConverter* angleConverter;
 };
 
-
-class InputMakerPhase2: public OMTFinputMaker {
+class InputMakerPhase2 : public OMTFinputMaker {
 public:
-	InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens,
-	    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2, const OMTFConfiguration* config );
+  InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
+                   MuStubsInputTokens& muStubsInputTokens,
+                   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
+                   const OMTFConfiguration* config);
 
-	virtual ~InputMakerPhase2();
+  virtual ~InputMakerPhase2();
 
-	 //the phi and eta digis are merged (even thought it is artificial)
-	 virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1Phase2MuDTPhDigi& digi,
-	    const L1Phase2MuDTPhContainer *dtThDigis,
-	    unsigned int iProcessor,
-	    l1t::tftype procTyp)  {}
+  //the phi and eta digis are merged (even thought it is artificial)
+  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
+                            const L1Phase2MuDTPhDigi& digi,
+                            const L1Phase2MuDTPhContainer* dtThDigis,
+                            unsigned int iProcessor,
+                            l1t::tftype procTyp) {}
 
 private:
+  OmtfPhase2AngleConverter angleConverter;
 };
 
 #endif /* INTERFACE_INPUTMAKERPHASE2_H_ */

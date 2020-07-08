@@ -22,9 +22,8 @@
 
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
-
 class L1TMuonBayesOmtfTrackProducer : public edm::EDProducer {
- public:
+public:
   L1TMuonBayesOmtfTrackProducer(const edm::ParameterSet&);
 
   ~L1TMuonBayesOmtfTrackProducer() override;
@@ -34,17 +33,15 @@ class L1TMuonBayesOmtfTrackProducer : public edm::EDProducer {
   void endJob() override;
 
   void beginRun(edm::Run const& run, edm::EventSetup const& iSetup) override;
-  
+
   void produce(edm::Event&, const edm::EventSetup&) override;
 
- private:
-  
-  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit; //TODO remove
+private:
+  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;  //TODO remove
 
   MuStubsInputTokens muStubsInputTokens;
 
   OMTFReconstruction m_Reconstruction;
-
 };
 
 #endif

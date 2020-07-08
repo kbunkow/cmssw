@@ -23,10 +23,8 @@
 
 class TTree;
 
-struct OMTFEvent{
-
+struct OMTFEvent {
 public:
-
   double muonPt, muonEta, muonPhi;
   int muonCharge;
 
@@ -36,33 +34,33 @@ public:
 
   std::vector<int> hits;
   std::vector<int> hitsQuality;
- 
 };
 
-class DataROOTDumper: public PatternOptimizerBase {
+class DataROOTDumper : public PatternOptimizerBase {
 public:
   DataROOTDumper(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
-  
+
   virtual ~DataROOTDumper();
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
-					const AlgoMuons& algoCandidates,
-					const AlgoMuons& gbCandidates,
-					const std::vector<l1t::RegionalMuonCand> & candMuons);
+  virtual void observeProcesorEmulation(unsigned int iProcessor,
+                                        l1t::tftype mtfType,
+                                        const std::shared_ptr<OMTFinput>& input,
+                                        const AlgoMuons& algoCandidates,
+                                        const AlgoMuons& gbCandidates,
+                                        const std::vector<l1t::RegionalMuonCand>& candMuons);
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  virtual void observeEventEnd(const edm::Event& iEvent,
+                               std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
 
   virtual void endJob();
 
 private:
-
   void initializeTTree();
   void saveTTree();
 
-  TFile *myFile;
-  TTree *myTree;
+  TFile* myFile;
+  TTree* myTree;
   OMTFEvent myEvent;
-
 };
 
 #endif /* OMTF_DATAROOTDUMPER_H_ */
