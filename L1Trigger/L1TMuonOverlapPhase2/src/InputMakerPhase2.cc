@@ -94,11 +94,12 @@ bool DtPhase2DigiToStubsConverterOmtf::acceptDigi(const DTChamberId& dTChamberId
 InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
                                    MuStubsInputTokens& muStubsInputTokens,
                                    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                                   const OMTFConfiguration* config)
-    : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config) {
+                                   const OMTFConfiguration* config,
+				   OmtfAngleConverter* angleConv)
+  : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config, angleConv) {
   edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
   
-  angleConverter = std::make_unique<OmtfPhase2AngleConverter>(); 
+  //  angleConverter = std::make_unique<OmtfPhase2AngleConverter>(); 
   if (edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
       throw cms::Exception(

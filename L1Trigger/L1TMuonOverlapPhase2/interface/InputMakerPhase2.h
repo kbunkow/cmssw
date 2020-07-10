@@ -96,7 +96,8 @@ public:
   InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
                    MuStubsInputTokens& muStubsInputTokens,
                    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                   const OMTFConfiguration* config);
+                   const OMTFConfiguration* config,
+		   OmtfAngleConverter* angleConv);
 
   virtual ~InputMakerPhase2();
 

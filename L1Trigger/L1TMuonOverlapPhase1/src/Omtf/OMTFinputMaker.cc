@@ -293,9 +293,10 @@ bool OMTFinputMaker::acceptDtDigi(const OMTFConfiguration* config,
 ///////////////////////////////////////
 OMTFinputMaker::OMTFinputMaker(const edm::ParameterSet& edmParameterSet,
                                MuStubsInputTokens& muStubsInputTokens,
-                               const OMTFConfiguration* config)
-    : MuonStubMakerBase(config), config(config) {
-  angleConverter = make_unique<OmtfAngleConverter>();
+                               const OMTFConfiguration* config,
+			       OmtfAngleConverter* angleConv)
+  : MuonStubMakerBase(config), config(config), angleConverter(angleConv)  {
+  // the OMTFinputMaker  takes the ownership of the OmtfAngleConverter
   if (!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterOmtf>(
 										    config, angleConverter.get(), muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));

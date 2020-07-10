@@ -7,6 +7,7 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
+dumpHitsFileName = 'OMTFHits2_pats0x00031_newerSample_files_1_100' #'OMTFHits_pats0x00031_newerSample_files_1_100' OMTFHits_pats0x0003_oldSample_files_30_40
 process.MessageLogger = cms.Service("MessageLogger",
     destinations   = cms.untracked.vstring(
                                                #'detailedInfo',
@@ -76,6 +77,8 @@ process.load('L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_cfi')
 process.simOmtfPhase2Digis.dumpResultToXML = cms.bool(True)
 process.simOmtfPhase2Digis.dumpResultToROOT = cms.bool(True)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(True)
+process.simOmtfPhase2Digis.dumpHitsToROOT = cms.bool(True)
+process.simOmtfPhase2Digis.dumpHitsFileName = cms.string(dumpHitsFileName + '.root')
 process.simOmtfPhase2Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase2Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)

@@ -42,7 +42,7 @@ public:
 
   //takes the ownership of the inputMaker
   void setInputMaker(OMTFinputMaker* inputMaker) { this->inputMaker.reset(inputMaker); }
-
+  
   void virtual addObservers();
 
 protected:
@@ -58,6 +58,8 @@ protected:
   unique_ptr<OMTFinputMaker> inputMaker;
 
   unique_ptr<IProcessorEmulator> omtfProc;
+
+  unique_ptr<OmtfAngleConverter> angleConv;
 
   OMTFConfigMaker* m_OMTFConfigMaker;
 

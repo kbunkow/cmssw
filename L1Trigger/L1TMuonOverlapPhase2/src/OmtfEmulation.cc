@@ -11,9 +11,11 @@
 OmtfEmulation::OmtfEmulation(const edm::ParameterSet& edmParameterSet,
                              MuStubsInputTokens& muStubsInputTokens,
                              edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2)
-    : OMTFReconstruction(edmParameterSet, muStubsInputTokens) {
+  : OMTFReconstruction(edmParameterSet, muStubsInputTokens) {
+   
+  this->angleConv = std::make_unique<OmtfPhase2AngleConverter>(); 
   inputMaker.reset(new InputMakerPhase2(
-      edmParameterSet, muStubsInputTokens, inputTokenDTPhPhase2, omtfConfig.get()));  //TODO add Phase2Dt token
+					edmParameterSet, muStubsInputTokens, inputTokenDTPhPhase2, omtfConfig.get(), angleConv.get()));  //TODO add Phase2Dt token
 }
 
 OmtfEmulation::~OmtfEmulation() {
