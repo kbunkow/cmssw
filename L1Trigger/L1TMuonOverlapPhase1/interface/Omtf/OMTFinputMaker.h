@@ -134,7 +134,7 @@ public:
                            l1t::tftype procType);
 
 protected:
-  OmtfAngleConverter angleConverter;
+  std::unique_ptr<OmtfAngleConverter> angleConverter;
   const OMTFConfiguration* config = nullptr;
 
   int flag = 0;

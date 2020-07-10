@@ -295,22 +295,23 @@ OMTFinputMaker::OMTFinputMaker(const edm::ParameterSet& edmParameterSet,
                                MuStubsInputTokens& muStubsInputTokens,
                                const OMTFConfiguration* config)
     : MuonStubMakerBase(config), config(config) {
+  angleConverter = make_unique<OmtfAngleConverter>();
   if (!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterOmtf>(
-        config, &angleConverter, muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
+										    config, angleConverter.get(), muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
 
   if (!edmParameterSet.getParameter<bool>("dropCSCPrimitives"))
     digiToStubsConverters.emplace_back(
-        std::make_unique<CscDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenCSC));
+				       std::make_unique<CscDigiToStubsConverterOmtf>(config, angleConverter.get(), muStubsInputTokens.inputTokenCSC));
 
   if (!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterOmtf>(
-        config, &angleConverter, &rpcClusterization, muStubsInputTokens.inputTokenRPC));
+										     config, angleConverter.get(), &rpcClusterization, muStubsInputTokens.inputTokenRPC));
 }
 
 void OMTFinputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
   MuonStubMakerBase::initialize(edmCfg, es);
-  angleConverter.checkAndUpdateGeometry(es, config);
+  angleConverter->checkAndUpdateGeometry(es, config);
 }
 
 ///////////////////////////////////////

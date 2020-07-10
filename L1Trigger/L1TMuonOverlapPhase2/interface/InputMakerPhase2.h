@@ -65,7 +65,7 @@ protected:
 class DtPhase2DigiToStubsConverterOmtf : public DtPhase2DigiToStubsConverter {
 public:
   DtPhase2DigiToStubsConverterOmtf(const OMTFConfiguration* config,
-                                   const OmtfPhase2AngleConverter* angleConverter,
+                                   const OmtfAngleConverter* angleConverter,
                                    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh,
                                    edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh)
       : DtPhase2DigiToStubsConverter(inputTokenDtPh, inputTokenDtTh), config(config), angleConverter(angleConverter){};
@@ -88,7 +88,7 @@ public:
 
 private:
   const OMTFConfiguration* config = nullptr;
-  const OmtfPhase2AngleConverter* angleConverter;
+  const OmtfAngleConverter* angleConverter;
 };
 
 class InputMakerPhase2 : public OMTFinputMaker {
@@ -106,9 +106,6 @@ public:
                             const L1Phase2MuDTPhContainer* dtThDigis,
                             unsigned int iProcessor,
                             l1t::tftype procTyp) {}
-
-private:
-  OmtfPhase2AngleConverter angleConverter;
 };
 
 #endif /* INTERFACE_INPUTMAKERPHASE2_H_ */

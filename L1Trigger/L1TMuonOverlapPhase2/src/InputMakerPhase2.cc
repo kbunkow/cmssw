@@ -97,7 +97,8 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
                                    const OMTFConfiguration* config)
     : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config) {
   edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
-
+  
+  angleConverter = std::make_unique<OmtfPhase2AngleConverter>(); 
   if (edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
       throw cms::Exception(
@@ -105,7 +106,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
           "is not true");
     //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
     digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(
-        config, &angleConverter, inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
+											  config, angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
   }
 }
 
