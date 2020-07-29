@@ -64,15 +64,9 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, int dtScN
 
   double hsPhiPitch = 2 * M_PI / nPhiBins;  // width of phi Pitch, related to halfStrip at CSC station 2
 
-  int sector = dtScNum + 1;  //NOTE: there is a inconsistency in DT sector numb. Thus +1 needed to get detector numb.
-  //int wheel   = digi.whNum();
-  //int station = digi.stNum();
-  //int phiDT   = digi.phi();
-
-  //int offsetLoc = lround( ((ichamber-1)*M_PI/6+M_PI/12.)/hsPhiPitch );
+  int sector = dtScNum + 1; //NOTE: there is a inconsistency in DT sector numb. Thus +1 needed to get detector numb.
   double scale = 1. / dtPhiBins / hsPhiPitch;
   int scale_coeff = lround(scale * pow(2, 11));
-  //  int phi = static_cast<int>(phiDT*scale) + offsetLoc;
 
   int ichamber = sector - 1;
   if (ichamber > 6)
@@ -82,7 +76,6 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, int dtScN
 
   int phiConverted = floor(dtPhi * scale_coeff / pow(2, 11)) + offsetGlobal - phiZero;
 
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiZero "<<phiZero<<" phiDT "<<phiDT<<" sector "<<sector<<" ichamber "<<ichamber<<" offsetGlobal "<<offsetGlobal<<" phi "<<phi<<" foldPhi(phi) "<<omtfConfig->foldPhi(phi)<<std::endl;
   return config->foldPhi(phiConverted);
 }
 ///////////////////////////////////////

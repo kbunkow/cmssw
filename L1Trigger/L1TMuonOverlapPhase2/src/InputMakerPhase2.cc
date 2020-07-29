@@ -66,7 +66,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
   stub.etaHw = angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum()-20);
   //phiB in Ph2 has 2018==1.4rad ... need to convert them to 512==1rad (so we can use OLD patterns)
-  stub.phiBHw = digi.phiBend(); //(int)(digi.phiBend()*1.4*512/2048); 
+  stub.phiBHw = round(digi.phiBend()*1.4*512/2048.); 
   stub.qualityHw = digi.quality();
 
   // need to shift 20-BX to roll-back the shift introduced by the DT TPs
@@ -99,7 +99,6 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
   : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config, angleConv) {
   edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
   
-  //  angleConverter = std::make_unique<OmtfPhase2AngleConverter>(); 
   if (edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
       throw cms::Exception(
@@ -109,6 +108,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(
 											  config, angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
   }
+  
 }
 
 InputMakerPhase2::~InputMakerPhase2() {

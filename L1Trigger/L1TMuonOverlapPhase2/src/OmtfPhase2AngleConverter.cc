@@ -1,12 +1,12 @@
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
 
 int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const {
-  int dtPhiBins = 65536./0.8;  //65536. per 0.8 radians
+  int dtPhiBins = 65536;  //65536. per 0.8 radians
   double hsPhiPitch = 2*M_PI/nPhiBins; // width of phi Pitch, related to halfStrip at CSC station 2
 
   int sector  = dtScNum+1;   //NOTE: there is a inconsistency in DT sector numb. Thus +1 needed to get detector numb.
 
-  double scale = 1./dtPhiBins/hsPhiPitch;
+  double scale = 0.8/dtPhiBins/hsPhiPitch;
   int scale_coeff = lround(scale* pow(2,11));
 
   int ichamber = sector-1;
@@ -16,8 +16,6 @@ int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int
   int offsetGlobal = (int)nPhiBins  * ichamber / 12;
   
   int phiConverted = floor(dtPhi*scale_coeff/pow(2,11)) + offsetGlobal - phiZero;
-  
-  std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiZero "<<phiZero<<" phiDT "<<dtPhi<<" sector "<<sector<<" ichamber "<<ichamber<<" offsetGlobal "<<offsetGlobal<<" phi "<<phiConverted <<" foldPhi(phi) "<<config->foldPhi(phiConverted)<<std::endl;
   
   return config->foldPhi(phiConverted);
 }
