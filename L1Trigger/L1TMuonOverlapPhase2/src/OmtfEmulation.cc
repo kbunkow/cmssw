@@ -13,6 +13,8 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include <memory>
+
 OmtfEmulation::OmtfEmulation(const edm::ParameterSet& edmParameterSet,
                              MuStubsInputTokens& muStubsInputTokens,
                              edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2)
