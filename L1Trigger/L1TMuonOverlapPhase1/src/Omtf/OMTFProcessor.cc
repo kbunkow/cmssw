@@ -92,7 +92,8 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
       loadExtrapolFactors(extrapolFactorsFileName);
   }
 
-  edm::LogVerbatim("OMTFReconstruction") << "useFloatingPointExtrapolation " << useFloatingPointExtrapolation << std::endl;
+  edm::LogVerbatim("OMTFReconstruction") << "useFloatingPointExtrapolation " << useFloatingPointExtrapolation
+                                         << std::endl;
   edm::LogVerbatim("OMTFReconstruction") << "extrapolFactorsFileName " << extrapolFactorsFileName << std::endl;
 }
 
@@ -130,7 +131,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     if (myCand->getPtUnconstr() >= 0) {  //empty PtUnconstrained is -1, maybe should be corrected on the source
       //the upt has different hardware scale than the pt, the upt unit is 1 GeV
       candidate.setHwPtUnconstrained(myCand->getPtUnconstr());
-    } else candidate.setHwPtUnconstrained(0);
+    } else
+      candidate.setHwPtUnconstrained(0);
 
     unsigned int quality = 12;
     if (this->myOmtfConfig->fwVersion() <= 6)
@@ -393,8 +395,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     float extrFactor = d / rTargetLayer / omtfConfig->dtPhiBUnitsRad() / omtfConfig->omtfPhiUnit();
     phiExtr = extrFactor * (float)refPhiB;  //[halfStrip]
 
-    float deltaPhiExtr = atan( d / rTargetLayer * tan(refPhiB / omtfConfig->dtPhiBUnitsRad()) );  //[rad]
-    phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit()); //[halfStrip]
+    float deltaPhiExtr = atan(d / rTargetLayer * tan(refPhiB / omtfConfig->dtPhiBUnitsRad()));  //[rad]
+    phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit());                                  //[halfStrip]
 
     if (useStubQualInExtr & (targetLayer == 0 || targetLayer == 2 || targetLayer == 4)) {
       extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality] = extrFactor;
@@ -417,7 +419,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
   } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) {
     int deltaPhi = targetStubPhi - refPhi;  //[halfStrip]
 
-    deltaPhi = round(deltaPhi * omtfConfig->omtfPhiUnit() * omtfConfig->dtPhiBUnitsRad());  //deltaPhi is here in phi_b hw scale
+    deltaPhi = round(deltaPhi * omtfConfig->omtfPhiUnit() *
+                     omtfConfig->dtPhiBUnitsRad());  //deltaPhi is here in phi_b hw scale
     phiExtr = refPhiB - deltaPhi;                    //phiExtr is also in phi_b hw scale
     LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " deltaPhi " << deltaPhi << " phiExtr "
                                   << phiExtr << std::endl;
@@ -450,8 +453,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     float extrFactor = d / rME / omtfConfig->dtPhiBUnitsRad() / omtfConfig->omtfPhiUnit();
     phiExtr = extrFactor * refPhiB;  //[halfStrip]
 
-    float deltaPhiExtr = atan( d / rME * tan(refPhiB / omtfConfig->dtPhiBUnitsRad() ) );  //[rad]
-    phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit()); //[halfStrip]
+    float deltaPhiExtr = atan(d / rME * tan(refPhiB / omtfConfig->dtPhiBUnitsRad()));  //[rad]
+    phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit());                         //[halfStrip]
 
     if (useEndcapStubsRInExtr) {
       extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)] += extrFactor;
@@ -628,15 +631,14 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           unsigned int iStub = 0;
           for (auto& targetStub : restrictedLayerStubs) {
             if (targetStub) {
-			  extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
-			  
-              LogTrace("l1tOmtfEventPrint") << "\n"
-                                            << __FUNCTION__ << ":" << __LINE__ << " extrapolating from layer "
-                                            << refLayerLogicNum << " - iRefLayer " << aRefHitDef.iRefLayer << " to layer "
-                                            << iLayer << " stub " << targetStub
-											<< " value "<<extrapolatedPhi[iStub]
-											<< std::endl;
-											            
+              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
+
+              LogTrace("l1tOmtfEventPrint")
+                  << "\n"
+                  << __FUNCTION__ << ":" << __LINE__ << " extrapolating from layer " << refLayerLogicNum
+                  << " - iRefLayer " << aRefHitDef.iRefLayer << " to layer " << iLayer << " stub " << targetStub
+                  << " value " << extrapolatedPhi[iStub] << std::endl;
+
               if (this->myOmtfConfig->getDumpResultToXML()) {
                 auto& extrapolatedPhiTree = procDataTree.add_child("extrapolatedPhi", boost::property_tree::ptree());
                 extrapolatedPhiTree.add("<xmlattr>.refLayer", refLayerLogicNum);
@@ -660,11 +662,11 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         StubResult stubResult =
             itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, extrapolatedPhi, refStub);
 
-       /* LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__
+        /* LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__
                                      <<" layerResult: valid"<<stubResult.getValid()
                                      <<" pdfVal "<<stubResult.getPdfVal()
                                      <<std::endl;*/
-									 
+
         itGP->getResults()[procIndx][iRefHit].setStubResult(iLayer, stubResult);
       }
     }
@@ -815,18 +817,18 @@ void OMTFProcessor<GoldenPatternType>::saveExtrapolFactors() {
 
       for (auto& extrFactors : extrapolFactors[iRefLayer][iLayer]) {
         int norm = 1;
-       if (!extrapolFactorsNorm[iRefLayer][iLayer].empty())
+        if (!extrapolFactorsNorm[iRefLayer][iLayer].empty())
           norm = extrapolFactorsNorm[iRefLayer][iLayer][extrFactors.first];
-       auto& lutVal = layerTree.add_child("LutVal", boost::property_tree::ptree());
-       if (useEndcapStubsRInExtr && ((iLayer >= 6 && iLayer <= 9) || (iLayer >= 15 && iLayer <= 17)))
-         lutVal.add("<xmlattr>.key", extrFactors.first);
-       else
-         lutVal.add("<xmlattr>.key", extrFactors.first);
-       lutVal.add("<xmlattr>.value", round(extrapolMultiplier * extrFactors.second / norm));
+        auto& lutVal = layerTree.add_child("LutVal", boost::property_tree::ptree());
+        if (useEndcapStubsRInExtr && ((iLayer >= 6 && iLayer <= 9) || (iLayer >= 15 && iLayer <= 17)))
+          lutVal.add("<xmlattr>.key", extrFactors.first);
+        else
+          lutVal.add("<xmlattr>.key", extrFactors.first);
+        lutVal.add("<xmlattr>.value", round(extrapolMultiplier * extrFactors.second / norm));
 
-       edm::LogVerbatim("OMTFReconstruction")
-           << std::setw(4) << extrFactors.first << " = " << extrFactors.first << std::setw(10) << extrFactors.second
-           << " " << std::setw(6) << norm << " " << std::setw(10) << extrFactors.second / norm << std::endl;
+        edm::LogVerbatim("OMTFReconstruction")
+            << std::setw(4) << extrFactors.first << " = " << extrFactors.first << std::setw(10) << extrFactors.second
+            << " " << std::setw(6) << norm << " " << std::setw(10) << extrFactors.second / norm << std::endl;
       }
     }
   }
