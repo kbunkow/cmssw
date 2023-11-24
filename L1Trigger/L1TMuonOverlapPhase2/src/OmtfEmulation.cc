@@ -34,6 +34,7 @@ void OmtfEmulation::beginJob() {
 void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
                                  const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
                                  const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
+  edm::LogImportant("OMTFReconstruction") << "OmtfEmulation::addObservers " << observers.empty() << std::endl;
   if (observers.empty()) {  //assuring it is done only at the first run
     OMTFReconstruction::addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
     /*    if(edmParameterSet.exists("patternsPtAssignment") && edmParameterSet.getParameter<bool>("patternsPtAssignment")) {

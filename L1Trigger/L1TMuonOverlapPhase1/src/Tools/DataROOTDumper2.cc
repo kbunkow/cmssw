@@ -51,9 +51,10 @@ DataROOTDumper2::~DataROOTDumper2() { saveTTree(); }
 void DataROOTDumper2::initializeTTree(std::string rootFileName) {
   edm::Service<TFileService> fs;
 
+  edm::LogVerbatim("l1tOmtfEventPrint") << " DataROOTDumper2::initializeTTree " << std::endl;
   //TFileDirectory subDir = fs->mkdir("OmtfDataDumper");
 
-  rootTree = fs->make<TTree>("OMTFHitsTree", "");
+  rootTree = fs->make<TTree>("OMTFHitsTree", rootFileName.c_str());
 
   rootTree->Branch("eventNum", &omtfEvent.eventNum);
   rootTree->Branch("muonEvent", &omtfEvent.muonEvent);
@@ -88,6 +89,21 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
 
   rootTree->Branch("hits", &omtfEvent.hits);
 
+  // stubs
+  rootTree->Branch("nStubs", &omtfEvent.nStubs);
+  rootTree->Branch("stubProc", &omtfEvent.stubProc);
+  rootTree->Branch("stubPhi", &omtfEvent.stubPhi);
+  rootTree->Branch("stubPhiB", &omtfEvent.stubPhiB);
+  rootTree->Branch("stubEta", &omtfEvent.stubEta);
+  rootTree->Branch("stubEtaSigma", &omtfEvent.stubEtaSigma);
+  rootTree->Branch("stubQuality", &omtfEvent.stubQuality);
+  rootTree->Branch("stubBx", &omtfEvent.stubBx);
+  rootTree->Branch("stubDetId", &omtfEvent.stubDetId);
+  rootTree->Branch("stubType", &omtfEvent.stubType);
+  rootTree->Branch("stubTiming", &omtfEvent.stubTiming);
+  rootTree->Branch("stubLogicLayer", &omtfEvent.stubLogicLayer);
+  rootTree->Branch("stubIHit", &omtfEvent.stubIHit);
+
   rootTree->Branch("deltaEta", &omtfEvent.deltaEta);
   rootTree->Branch("deltaPhi", &omtfEvent.deltaPhi);
 
@@ -99,13 +115,41 @@ void DataROOTDumper2::saveTTree() {}
 
 void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                l1t::tftype mtfType,
-                                               const std::shared_ptr<OMTFinput>&,
+                                               const std::shared_ptr<OMTFinput>& input,
                                                const AlgoMuons& algoCandidates,
                                                const AlgoMuons& gbCandidates,
-                                               const std::vector<l1t::RegionalMuonCand>& candMuons) {}
+                                               const std::vector<l1t::RegionalMuonCand>& candMuons) {
+  unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
+
+
+  for (unsigned int iLayer = 0; iLayer < omtfConfig->nLayers(); ++iLayer) {
+
+    for (unsigned int iHit = 0; iHit < input->getMuonStubs()[iLayer].size(); ++iHit) {
+      MuonStubPtr inputStub = input->getMuonStub(iLayer, iHit);
+      if (inputStub) {
+        omtfEvent.nStubs++;
+        omtfEvent.stubLogicLayer.push_back(iLayer);
+        omtfEvent.stubProc.push_back(procIndx);
+        omtfEvent.stubPhi.push_back(inputStub->phiHw);
+        omtfEvent.stubPhiB.push_back(inputStub->phiBHw);
+        omtfEvent.stubEta.push_back(inputStub->etaHw);
+        omtfEvent.stubEtaSigma.push_back(inputStub->etaSigmaHw);
+        omtfEvent.stubQuality.push_back(inputStub->qualityHw);
+        omtfEvent.stubBx.push_back(inputStub->bx);
+        omtfEvent.stubTiming.push_back(inputStub->timing);
+        omtfEvent.stubIHit.push_back(iHit);
+        omtfEvent.stubDetId.push_back(inputStub->detId);
+        omtfEvent.stubType.push_back(inputStub->type);
+      }
+    }
+  }
+  if (omtfEvent.nStubs > 0)
+    rootTree->Fill();
+}
 
 void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
+
   /*
   int muonCharge = 0;
   if (simMuon) {
