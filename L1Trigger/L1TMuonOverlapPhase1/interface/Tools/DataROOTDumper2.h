@@ -73,6 +73,20 @@ public:
   };
 
   std::vector<unsigned long> hits;
+
+  int nStubs = 0;
+  std::vector<short> stubProc;
+  std::vector<short> stubPhi;
+  std::vector<short> stubPhiB;
+  std::vector<short> stubEta;
+  std::vector<short> stubEtaSigma;
+  std::vector<short> stubQuality;
+  std::vector<short> stubBx;
+  std::vector<short> stubTiming;
+  std::vector<short> stubLogicLayer;
+  std::vector<short> stubIHit;
+  std::vector<short> stubDetId;
+  std::vector<short> stubType;
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
