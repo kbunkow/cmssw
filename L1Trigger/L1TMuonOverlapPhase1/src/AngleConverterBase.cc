@@ -80,10 +80,8 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, int dtScN
 }
 ///////////////////////////////////////
 ///////////////////////////////////////
-int AngleConverterBase::getProcessorPhi(int phiZero,
-                                        l1t::tftype part,
-                                        const CSCDetId& csc,
-                                        const CSCCorrelatedLCTDigi& digi) const {
+int AngleConverterBase::getProcessorPhi(
+    int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const {
   const double hsPhiPitch = 2 * M_PI / nPhiBins;
   //
   // get offset for each chamber.
@@ -128,9 +126,17 @@ int AngleConverterBase::getProcessorPhi(int phiZero,
   // a quick fix for towards geometry changes due to global tag.
   // in case of MC tag fixOff should be identical to offsetLoc
 
-  if (config->getFixCscGeometryOffset())
-    fixOff = fixCscOffsetGeom(offsetLoc);  //TODO does not work in when phiZero is always 0. Fix this
-
+  if (config->getFixCscGeometryOffset()) {
+    if (config->nProcessors() == 6)          //phase1
+      fixOff = fixCscOffsetGeom(offsetLoc);  //TODO does not work in when phiZero is always 0. Fix this
+    else if (config->nProcessors() == 3) {   //phase2
+      //TODO fix this bricolage!!!!!!!!!!!!!!
+      if (iInput >= 14)
+        fixOff = fixCscOffsetGeom(offsetLoc - 900) + 900;
+      else
+        fixOff = fixCscOffsetGeom(offsetLoc);
+    }
+  }
   int phi = fixOff + order * scale * halfStrip;
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
   //where phi of the stub is calculated with use of the offset and scale provided by an register
@@ -169,7 +175,7 @@ int AngleConverterBase::getProcessorPhi(
   double stripPhi2 = (roll->toGlobal(roll->centreOfStrip((int)digi2))).phi();  // note [-pi,pi]
 
   // the case when the two strips are on different sides of phi = pi
-  if (std::signbit(stripPhi1) != std::signbit(stripPhi2) && abs(stripPhi1) > M_PI / 2.) {
+  if (std::signbit(stripPhi1) != std::signbit(stripPhi2) && fabs(stripPhi1) > M_PI / 2.) {
     if (std::signbit(stripPhi1)) {  //stripPhi1 is negative
       stripPhi1 += 2 * M_PI;
     } else  //stripPhi2 is negative
@@ -410,7 +416,7 @@ EtaValue AngleConverterBase::getGlobalEta(unsigned int rawid, const unsigned int
   const GlobalPoint gpNeigh = rollNeigh->toGlobal(lpNeigh);
 
   EtaValue etaValue = {config->etaToHwEta(gp.eta()),
-                       config->etaToHwEta(abs(gp.eta() - gpNeigh.eta())) /
+                       config->etaToHwEta(fabs(gp.eta() - gpNeigh.eta())) /
                            2,  //half of the size of the strip in eta - not precise, but OK
                        0};
 
