@@ -145,6 +145,19 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
   }
   if (omtfEvent.nStubs > 0)
     rootTree->Fill();
+  omtfEvent.stubLogicLayer.clear();
+  omtfEvent.stubProc.clear();
+  omtfEvent.stubPhi.clear();
+  omtfEvent.stubPhiB.clear();
+  omtfEvent.stubEta.clear();
+  omtfEvent.stubEtaSigma.clear();
+  omtfEvent.stubQuality.clear();
+  omtfEvent.stubBx.clear();
+  omtfEvent.stubTiming.clear();
+  omtfEvent.stubIHit.clear();
+  omtfEvent.stubDetId.clear();
+  omtfEvent.stubType.clear();
+  omtfEvent.nStubs = 0;
 }
 
 void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
