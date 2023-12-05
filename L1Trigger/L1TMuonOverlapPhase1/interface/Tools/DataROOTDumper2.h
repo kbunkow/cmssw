@@ -75,18 +75,19 @@ public:
   std::vector<unsigned long> hits;
 
   int nStubs = 0;
-  std::vector<short> stubProc;
-  std::vector<short> stubPhi;
-  std::vector<short> stubPhiB;
-  std::vector<short> stubEta;
-  std::vector<short> stubEtaSigma;
-  std::vector<short> stubQuality;
-  std::vector<short> stubBx;
-  std::vector<short> stubTiming;
-  std::vector<short> stubLogicLayer;
-  std::vector<short> stubIHit;
-  std::vector<short> stubDetId;
-  std::vector<short> stubType;
+  std::vector<int>  stubProc;
+  std::vector<int>  stubPhi;
+  std::vector<int>  stubPhiB;
+  std::vector<int>  stubEta;
+  std::vector<int>  stubEtaSigma;
+  std::vector<int>  stubQuality;
+  std::vector<int>  stubBx;
+  std::vector<int>  stubTiming;
+  std::vector<int>  stubLogicLayer;
+  std::vector<int>  stubIHit;
+  std::vector<int>  stubDetId;
+  std::vector<int>  stubType;
+  std::vector<bool> stubIsMatched;
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
@@ -104,6 +105,8 @@ public:
                                 const AlgoMuons& gbCandidates,
                                 const std::vector<l1t::RegionalMuonCand>& candMuons) override;
 
+  void observeEventBegin(const edm::Event& event) override;
+
   void observeEventEnd(const edm::Event& iEvent,
                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
@@ -112,7 +115,9 @@ public:
 private:
   void initializeTTree(std::string rootFileName);
   void saveTTree();
-
+  void clearOmtfStubs();
+  void matchStubToHits(OmtfEvent::Hit& hit);
+  
   CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
 
   TTree* rootTree = nullptr;
@@ -127,6 +132,9 @@ private:
   std::vector<TH2*> hitVsPt;
 
   bool dumpKilledOmtfCands = false;
+
+  //std::vector<std::shared_ptr<OMTFinput> > inputInProcs;
+
 };
 
 #endif /* L1T_OmtfP1_TOOLS_DATAROOTDUMPER2_H_ */

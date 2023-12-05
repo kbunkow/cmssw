@@ -33,7 +33,10 @@
 DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg,
                                  const OMTFConfiguration* omtfConfig,
                                  CandidateSimMuonMatcher* candidateSimMuonMatcher)
-    : EmulationObserverBase(edmCfg, omtfConfig), candidateSimMuonMatcher(candidateSimMuonMatcher) {
+    : EmulationObserverBase(edmCfg, omtfConfig), 
+      candidateSimMuonMatcher(candidateSimMuonMatcher)//,
+   //   inputInProcs(omtfConfig->processorCnt())
+ {
   edm::LogVerbatim("l1tOmtfEventPrint") << " omtfConfig->nTestRefHits() " << omtfConfig->nTestRefHits()
                                         << " event.omtfGpResultsPdfSum.num_elements() " << endl;
   initializeTTree("dump.root");  //TODO
@@ -55,7 +58,6 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
   //TFileDirectory subDir = fs->mkdir("OmtfDataDumper");
 
   rootTree = fs->make<TTree>("OMTFHitsTree", rootFileName.c_str());
-
   rootTree->Branch("eventNum", &omtfEvent.eventNum);
   rootTree->Branch("muonEvent", &omtfEvent.muonEvent);
 
@@ -103,6 +105,7 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
   rootTree->Branch("stubTiming", &omtfEvent.stubTiming);
   rootTree->Branch("stubLogicLayer", &omtfEvent.stubLogicLayer);
   rootTree->Branch("stubIHit", &omtfEvent.stubIHit);
+  rootTree->Branch("stubIsMatched", &omtfEvent.stubIsMatched);
 
   rootTree->Branch("deltaEta", &omtfEvent.deltaEta);
   rootTree->Branch("deltaPhi", &omtfEvent.deltaPhi);
@@ -113,6 +116,11 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
 
 void DataROOTDumper2::saveTTree() {}
 
+void DataROOTDumper2::observeEventBegin(const edm::Event& iEvent) {
+  edm::LogVerbatim("l1tOmtfEventPrint") << "DataROOTDumper2::observeEventBegin " << std::endl;
+  clearOmtfStubs();
+  
+}
 void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                l1t::tftype mtfType,
                                                const std::shared_ptr<OMTFinput>& input,
@@ -120,13 +128,11 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                const AlgoMuons& gbCandidates,
                                                const std::vector<l1t::RegionalMuonCand>& candMuons) {
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
-
-
+  
   for (unsigned int iLayer = 0; iLayer < omtfConfig->nLayers(); ++iLayer) {
-
     for (unsigned int iHit = 0; iHit < input->getMuonStubs()[iLayer].size(); ++iHit) {
       MuonStubPtr inputStub = input->getMuonStub(iLayer, iHit);
-      if (inputStub) {
+      if (inputStub && (inputStub->type != MuonStub::Type::EMPTY)) {
         omtfEvent.nStubs++;
         omtfEvent.stubLogicLayer.push_back(iLayer);
         omtfEvent.stubProc.push_back(procIndx);
@@ -140,55 +146,14 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
         omtfEvent.stubIHit.push_back(iHit);
         omtfEvent.stubDetId.push_back(inputStub->detId);
         omtfEvent.stubType.push_back(inputStub->type);
+        omtfEvent.stubIsMatched.push_back(false);
       }
     }
   }
-  if (omtfEvent.nStubs > 0)
-    rootTree->Fill();
-  omtfEvent.stubLogicLayer.clear();
-  omtfEvent.stubProc.clear();
-  omtfEvent.stubPhi.clear();
-  omtfEvent.stubPhiB.clear();
-  omtfEvent.stubEta.clear();
-  omtfEvent.stubEtaSigma.clear();
-  omtfEvent.stubQuality.clear();
-  omtfEvent.stubBx.clear();
-  omtfEvent.stubTiming.clear();
-  omtfEvent.stubIHit.clear();
-  omtfEvent.stubDetId.clear();
-  omtfEvent.stubType.clear();
-  omtfEvent.nStubs = 0;
 }
 
 void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
-
-  /*
-  int muonCharge = 0;
-  if (simMuon) {
-    if (fabs(simMuon->momentum().eta()) < 0.8 || fabs(simMuon->momentum().eta()) > 1.24)
-      return;
-
-    muonCharge = (abs(simMuon->type()) == 13) ? simMuon->type() / -13 : 0;
-    if (muonCharge > 0)
-      ptGenPos->Fill(simMuon->momentum().pt());
-    else
-      ptGenNeg->Fill(simMuon->momentum().pt());
-  }
-
-  if (simMuon == nullptr || !omtfCand->isValid())  //no sim muon or empty candidate
-    return;
-
-  omtfEvent.muonPt = simMuon->momentum().pt();
-  omtfEvent.muonEta = simMuon->momentum().eta();
-
-  //TODO add cut on ete if needed
-    if(fabs(event.muonEta) < 0.8 || fabs(event.muonEta) > 1.24)
-    return;
-
-  omtfEvent.muonPhi = simMuon->momentum().phi();
-  omtfEvent.muonCharge = muonCharge;  //TODO
-   */
 
   std::vector<MatchingResult> matchingResults = candidateSimMuonMatcher->getMatchingResults();
   LogTrace("l1tOmtfEventPrint") << "\nDataROOTDumper2::observeEventEnd matchingResults.size() "
@@ -353,6 +318,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
           }
 
           omtfEvent.hits.push_back(hit.rawData);
+          
+          matchStubToHits(hit);
         }
       }
 
@@ -413,7 +380,6 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       omtfEvent.killed = false;
 
       omtfEvent.hits.clear();
-
       rootTree->Fill();
     }
   }
@@ -421,3 +387,36 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
 }
 
 void DataROOTDumper2::endJob() { edm::LogVerbatim("l1tOmtfEventPrint") << " evntCnt " << evntCnt << endl; }
+
+
+void DataROOTDumper2::clearOmtfStubs() {
+  omtfEvent.stubLogicLayer.clear();
+  omtfEvent.stubProc.clear();
+  omtfEvent.stubPhi.clear();
+  omtfEvent.stubPhiB.clear();
+  omtfEvent.stubEta.clear();
+  omtfEvent.stubEtaSigma.clear();
+  omtfEvent.stubQuality.clear();
+  omtfEvent.stubBx.clear();
+  omtfEvent.stubTiming.clear();
+  omtfEvent.stubIHit.clear();
+  omtfEvent.stubDetId.clear();
+  omtfEvent.stubType.clear();
+  omtfEvent.stubIsMatched.clear();
+  omtfEvent.nStubs = 0;
+}
+
+void DataROOTDumper2::matchStubToHits(OmtfEvent::Hit& hit){
+
+  for (int istub=0; istub<omtfEvent.nStubs; ++istub){
+    if (omtfEvent.stubLogicLayer[istub] == hit.layer){
+      if (omtfEvent.stubQuality[istub] == hit.quality){
+        if (omtfEvent.stubEta[istub] == hit.eta){
+          omtfEvent.stubIsMatched[istub] = true;
+        }
+      }
+    }
+  }
+}
+
+
