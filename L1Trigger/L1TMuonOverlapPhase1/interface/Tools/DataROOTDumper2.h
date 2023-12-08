@@ -84,10 +84,9 @@ public:
   std::vector<int>  stubBx;
   std::vector<int>  stubTiming;
   std::vector<int>  stubLogicLayer;
-  std::vector<int>  stubIHit;
+  //  std::vector<int>  stubIHit;
   std::vector<int>  stubDetId;
   std::vector<int>  stubType;
-  std::vector<bool> stubIsMatched;
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
@@ -116,7 +115,8 @@ private:
   void initializeTTree(std::string rootFileName);
   void saveTTree();
   void clearOmtfStubs();
-  void matchStubToHits(OmtfEvent::Hit& hit);
+  //  void matchStubToHits(OmtfEvent::Hit& hit);
+  void addOmtfStubsFromProc(int);
   
   CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
 
@@ -133,7 +133,7 @@ private:
 
   bool dumpKilledOmtfCands = false;
 
-  //std::vector<std::shared_ptr<OMTFinput> > inputInProcs;
+  std::vector<std::shared_ptr<OMTFinput> > inputInProcs;
 
 };
 

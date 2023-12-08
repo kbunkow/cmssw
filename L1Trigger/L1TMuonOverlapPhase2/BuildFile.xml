@@ -10,8 +10,6 @@
   <use name="xerces-c"/>
 </export>
 
-<flags ADD_SUBDIR="1"/>
-
 <use name="xerces-c"/>
 <use name="root"/>
 <use name="roofit"/>
