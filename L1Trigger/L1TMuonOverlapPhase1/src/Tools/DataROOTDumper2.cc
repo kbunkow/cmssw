@@ -129,7 +129,9 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                const AlgoMuons& algoCandidates,
                                                const AlgoMuons& gbCandidates,
                                                const std::vector<l1t::RegionalMuonCand>& candMuons) {
+  
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
+  edm::LogVerbatim("l1tOmtfEventPrint") << "DataROOTDumper2::observeProcesorEmulation " <<  iProcessor << " - " << procIndx << std::endl;
 
   inputInProcs[procIndx] = input;
 
@@ -397,6 +399,8 @@ void DataROOTDumper2::endJob() { edm::LogVerbatim("l1tOmtfEventPrint") << " evnt
 
 
 void DataROOTDumper2::clearOmtfStubs() {
+  edm::LogVerbatim("l1tOmtfEventPrint") << " clearOmtfStubs " << endl;
+
   omtfEvent.stubLogicLayer.clear();
   omtfEvent.stubProc.clear();
   omtfEvent.stubPhi.clear();
@@ -412,26 +416,25 @@ void DataROOTDumper2::clearOmtfStubs() {
   omtfEvent.nStubs = 0;
 }
 void DataROOTDumper2::addOmtfStubsFromProc(int iProc){
-
+  edm::LogVerbatim("l1tOmtfEventPrint") << " addOmtfStubsFromProc from Proc: " << iProc << endl;
   if (inputInProcs[iProc]) {
     auto& omtfInput = *inputInProcs[iProc];
     for (auto& layer : omtfInput.getMuonStubs()) {
       for (auto& stub : layer) {
-	if (stub && (stub->type != MuonStub::Type::EMPTY)) {
-	  omtfEvent.nStubs++;
-	  omtfEvent.stubLogicLayer.push_back(stub->logicLayer);
-	  omtfEvent.stubProc.push_back(iProc);
-	  omtfEvent.stubPhi.push_back(stub->phiHw);
-	  omtfEvent.stubPhiB.push_back(stub->phiBHw);
-	  omtfEvent.stubEta.push_back(stub->etaHw);
-	  omtfEvent.stubEtaSigma.push_back(stub->etaSigmaHw);
-	  omtfEvent.stubQuality.push_back(stub->qualityHw);
-	  omtfEvent.stubBx.push_back(stub->bx);
-	  omtfEvent.stubTiming.push_back(stub->timing);
-	  //	  omtfEvent.stubIHit.push_back(iHit);
-	  omtfEvent.stubDetId.push_back(stub->detId);
-	  omtfEvent.stubType.push_back(stub->type);
-	}
+	      if (stub && (stub->type != MuonStub::Type::EMPTY)) {
+          omtfEvent.nStubs++;
+          omtfEvent.stubLogicLayer.push_back(stub->logicLayer);
+          omtfEvent.stubProc.push_back(iProc);
+          omtfEvent.stubPhi.push_back(stub->phiHw);
+          omtfEvent.stubPhiB.push_back(stub->phiBHw);
+          omtfEvent.stubEta.push_back(stub->etaHw);
+          omtfEvent.stubEtaSigma.push_back(stub->etaSigmaHw);
+          omtfEvent.stubQuality.push_back(stub->qualityHw);
+          omtfEvent.stubBx.push_back(stub->bx);
+          omtfEvent.stubTiming.push_back(stub->timing);
+          omtfEvent.stubDetId.push_back(stub->detId);
+          omtfEvent.stubType.push_back(stub->type);
+	      }
       }
     }
   }
