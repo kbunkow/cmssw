@@ -116,7 +116,7 @@ private:
   void saveTTree();
   void clearOmtfStubs();
   //  void matchStubToHits(OmtfEvent::Hit& hit);
-  void addOmtfStubsFromProc(int);
+  void addOmtfStubsFromProc(int,l1t::tftype);
   
   CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
 

@@ -116,7 +116,6 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
 void DataROOTDumper2::saveTTree() {}
 
 void DataROOTDumper2::observeEventBegin(const edm::Event& iEvent) {
-  edm::LogVerbatim("l1tOmtfEventPrint") << "DataROOTDumper2::observeEventBegin " << std::endl;
   clearOmtfStubs();
 
   for (auto& input : inputInProcs)
@@ -131,8 +130,6 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                const std::vector<l1t::RegionalMuonCand>& candMuons) {
   
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
-  edm::LogVerbatim("l1tOmtfEventPrint") << "DataROOTDumper2::observeProcesorEmulation " <<  iProcessor << " - " << procIndx << std::endl;
-
   inputInProcs[procIndx] = input;
 
   /*
@@ -353,7 +350,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       }
 
       addOmtfCand(matchingResult.procMuon);
-      addOmtfStubsFromProc(matchingResult.muonCand->processor());
+      addOmtfStubsFromProc(matchingResult.muonCand->processor(),matchingResult.muonCand->trackFinderType());
       rootTree->Fill();
       clearOmtfStubs();
       
@@ -399,7 +396,6 @@ void DataROOTDumper2::endJob() { edm::LogVerbatim("l1tOmtfEventPrint") << " evnt
 
 
 void DataROOTDumper2::clearOmtfStubs() {
-  edm::LogVerbatim("l1tOmtfEventPrint") << " clearOmtfStubs " << endl;
 
   omtfEvent.stubLogicLayer.clear();
   omtfEvent.stubProc.clear();
@@ -410,21 +406,22 @@ void DataROOTDumper2::clearOmtfStubs() {
   omtfEvent.stubQuality.clear();
   omtfEvent.stubBx.clear();
   omtfEvent.stubTiming.clear();
-  //  omtfEvent.stubIHit.clear();
   omtfEvent.stubDetId.clear();
   omtfEvent.stubType.clear();
   omtfEvent.nStubs = 0;
 }
-void DataROOTDumper2::addOmtfStubsFromProc(int iProc){
-  edm::LogVerbatim("l1tOmtfEventPrint") << " addOmtfStubsFromProc from Proc: " << iProc << endl;
-  if (inputInProcs[iProc]) {
-    auto& omtfInput = *inputInProcs[iProc];
+void DataROOTDumper2::addOmtfStubsFromProc(int iProc, l1t::tftype mtfType){
+
+  int procIndx = omtfConfig->getProcIndx(iProc, mtfType);
+
+  if (inputInProcs[procIndx]) {
+    auto& omtfInput = *inputInProcs[procIndx];
     for (auto& layer : omtfInput.getMuonStubs()) {
       for (auto& stub : layer) {
 	      if (stub && (stub->type != MuonStub::Type::EMPTY)) {
           omtfEvent.nStubs++;
           omtfEvent.stubLogicLayer.push_back(stub->logicLayer);
-          omtfEvent.stubProc.push_back(iProc);
+          omtfEvent.stubProc.push_back(procIndx);
           omtfEvent.stubPhi.push_back(stub->phiHw);
           omtfEvent.stubPhiB.push_back(stub->phiBHw);
           omtfEvent.stubEta.push_back(stub->etaHw);
