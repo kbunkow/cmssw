@@ -138,7 +138,6 @@ void GoldenPatternResult::finalise0() {
 ////////////////////////////////////////////
 //for the algo version with thresholds
 void GoldenPatternResult::finalise1() {
-  //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
   for (unsigned int iLogicLayer = 0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
     //in this version we do not require that both phi and phiB is fired (non-zero), we thread them just independent
     //watch out that then the number of fired layers is bigger, and the cut on the minimal number of fired layers does not work in the same way as when the dt chamber is counted as one layer
@@ -265,7 +264,6 @@ void GoldenPatternResult::finalise8() {
     unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
     if (omtfConfig->isBendingLayer(iLogicLayer)) {  //the DT phiB layer is counted only when the phi layer is fired
       if ((firedLayerBits & (1 << iLogicLayer)) && (firedLayerBits & (1 << connectedLayer))) {
-        // && (stubResults[iLogicLayer].getMuonStub()->qualityHw >= 4) this is not needed, as the rejecting the low quality phiB hits is on the input of the algorithm
         firedLayerCnt++;
       } else {
         firedLayerBits &= ~(1 << iLogicLayer);
@@ -339,9 +337,6 @@ void GoldenPatternResult::finalise10() {
         }
       } else {
         //bending layer fired, but not fits to the pdf, N.B works only with the patterns having "no hit value" and with noHitValueInPdf = True
-        /*if (stubResults[iLogicLayer].getPdfVal() == 0)
-          pdfSum -= 32; //has no sense with extrapolation from the ref layer using the phiB
-        else*/
         pdfSum += stubResults[iLogicLayer].getPdfVal();  //bending layer not fired at all
       }
     } else {
@@ -408,9 +403,6 @@ void GoldenPatternResult::finalise11() {
         }
       } else {
         //bending layer fired, but not fits to the pdf, N.B works only with the patterns having "no hit value" and with noHitValueInPdf = True
-        /*if (stubResults[iLogicLayer].getPdfVal() == 0)
-          pdfSum -= 32; //has no sense with extrapolation from the ref layer using the phiB
-        else*/
         pdfSum += stubResults[iLogicLayer].getPdfVal();  //bending layer not fired at all
       }
     } else {
