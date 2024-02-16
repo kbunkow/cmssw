@@ -401,7 +401,6 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement *aGPEleme
       throw cms::Exception("OMTF::XMLConfigReader: aItemElement is 0");
     std::string strVal = _toString(aItemElement->getAttribute(xmlTresh));
     thresholds[iItem] = std::stof(strVal);
-    //LogTrace("OMTFReconstruction")<<__FUNCTION__<<":"<<__LINE__<<" strVal "<<strVal<<" thresholds[iItem] "<<thresholds[iItem]<<std::endl;
   }
 
   ///Loop over layers

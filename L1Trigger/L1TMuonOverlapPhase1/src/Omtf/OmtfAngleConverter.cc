@@ -226,16 +226,11 @@ int OmtfAngleConverter::getGlobalEta(unsigned int rawid, const CSCCorrelatedLCTD
 
   r = final_gp.perp();
 
-  //edm::LogVerbatim("l1tOmtfEventPrint")<<id<<" ETA_CSC st: " << id.station()<< "ri: "<<id.ring()<<" eta: " <<  final_gp.eta()
-  //           <<" etaCode_simple: " <<  etaVal2Code( final_gp.eta() )<< " keyWG: "<<keyWG <<" etaKeyWG2Code: "<<etaKeyWG2Code(id,keyWG)<< std::endl;
-
   if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::bits)
     return OMTFConfiguration::eta2Bits(abs(etaKeyWG2Code(id, keyWG)));
   else if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::valueP1Scale) {
     const LocalPoint lpWg = layer_geom->localCenterOfWireGroup(keyWG);
     const GlobalPoint gpWg = layer->surface().toGlobal(lpWg);
-
-    //edm::LogVerbatim("l1tOmtfEventPrint")<<"gpWg.eta() " << gpWg.eta()<<" etaToHwEta(gpWg.eta()) "<<config->etaToHwEta(gpWg.eta()) << std::endl;
 
     return config->etaToHwEta(abs(gpWg.eta()));
   } else {
