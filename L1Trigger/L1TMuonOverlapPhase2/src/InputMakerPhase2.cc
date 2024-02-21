@@ -59,9 +59,6 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       }
     }
   }
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
-  //angleConverter->AngleConverterBase::getGlobalEta(dtThDigis, 0, 0);std::endl;
-  //angleConverter->AngleConverterBase::getGlobalEta(dtThDigis, 0, 0);
 
   for (auto& obs : observers)
     obs->addProcesorData("linkData", procDataTree);
@@ -106,17 +103,14 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
 
   stub.type = MuonStub::DT_PHI_ETA;
 
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   stub.phiHw = angleConverter->getProcessorPhi(
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
-  //stub.etaHw  =  angleConverter->getGlobalEta(digi, dtThDigis);
 
   //TODO the dtThDigis are not good yet,so passing an empty container to the angleConverter
   //then it should return middle of chambers
   //remove when the dtThDigis are fixed on the DT side
   L1MuDTChambThContainer dtThDigisEmpty;
   stub.etaHw = angleConverter->getGlobalEta(detid, &dtThDigisEmpty, digi.bxNum() - 20);
-  //stub.etaHw = angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum() - 20);
   //in phase2, the phiB is 13 bits, and range is [-2, 2 rad] so 4 rad, 2^13 units/(4 rad) =  1^11/rad.
   //need to convert them to 512units==1rad (to use OLD PATTERNS...)
   stub.phiBHw = digi.phiBend() * config->dtPhiBUnitsRad() / 2048;
@@ -161,15 +155,6 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config, std::move(angleConverter)) {
   edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
 
-  /*  if(!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
-    digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
-
-  if(!edmParameterSet.getParameter<bool>("dropCSCPrimitives"))
-    digiToStubsConverters.emplace_back(std::make_unique<CscDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenCSC));
-
-  if(!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
-    digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterOmtf>(config, &angleConverter, &rpcClusterization, muStubsInputTokens.inputTokenRPC));*/
-
   if (edmParameterSet.exists("usePhase2DTPrimitives") && edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
       throw cms::Exception(
@@ -180,8 +165,4 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(
         config, this->angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
   }
-}
-
-InputMakerPhase2::~InputMakerPhase2() {
-  // TODO Auto-generated destructor stub
 }

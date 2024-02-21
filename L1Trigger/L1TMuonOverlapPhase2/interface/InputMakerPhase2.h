@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef INTERFACE_INPUTMAKERPHASE2_H_
-#define INTERFACE_INPUTMAKERPHASE2_H_
+#ifndef L1Trigger_L1TMuonOverlapPhase2_InputMakerPhase2_h
+#define L1Trigger_L1TMuonOverlapPhase2_InputMakerPhase2_h
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -28,8 +28,6 @@ public:
       : inputTokenDtPh(inputTokenDtPh), inputTokenDtTh(inputTokenDtTh){};
 
   ~DtPhase2DigiToStubsConverter() override{};
-
-  //virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf) {};
 
   void loadDigis(const edm::Event& event) override;
 
@@ -74,7 +72,7 @@ public:
                                    edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh)
       : DtPhase2DigiToStubsConverter(inputTokenDtPh, inputTokenDtTh), config(config), angleConverter(angleConverter){};
 
-  ~DtPhase2DigiToStubsConverterOmtf() override{};
+  ~DtPhase2DigiToStubsConverterOmtf() override = default;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
@@ -103,7 +101,7 @@ public:
                    const OMTFConfiguration* config,
                    std::unique_ptr<OmtfAngleConverter> angleConverter);
 
-  ~InputMakerPhase2() override;
+  ~InputMakerPhase2() override = default;
 
   //the phi and eta digis are merged (even thought it is artificial)
   virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
@@ -113,4 +111,4 @@ public:
                             l1t::tftype procTyp) {}
 };
 
-#endif /* INTERFACE_INPUTMAKERPHASE2_H_ */
+#endif /* L1Trigger_L1TMuonOverlapPhase2_InputMakerPhase2_h */
