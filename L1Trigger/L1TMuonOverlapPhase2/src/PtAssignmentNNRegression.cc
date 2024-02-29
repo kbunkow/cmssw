@@ -77,7 +77,8 @@ namespace lutNN {
                                                  layer3_1_lut_I,
                                                  layer3_1_lut_F,
                                                  output1_I,
-                                                 output1_F> LutNetworkFP;
+                                                 output1_F>
+      LutNetworkFP;
 }  // namespace lutNN
 
 PtAssignmentNNRegression::PtAssignmentNNRegression(const edm::ParameterSet& edmCfg,
@@ -262,19 +263,27 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
       <<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer<<" omtfPtCont "<<event.omtfPtCont
       <<std::endl;
 */
+  unsigned int minHitsCnt = 3;
+  const unsigned int maxHitCnt = 18;  //layer cnt
 
-  unsigned int inputCnt = 18;  //TDOO!!!!!
-  unsigned int outputCnt = 2;
+  const unsigned int inputCnt = maxHitCnt;
+  const unsigned int outputCnt = 2;
   const float noHitVal = 1023.;
 
   //edm::LogImportant("OMTFReconstruction") <<"\n----------------------"<<endl;
   //edm::LogImportant("OMTFReconstruction") <<(*algoMuon)<<std::endl;
 
   std::vector<float> inputs(inputCnt, noHitVal);
-
+  int hitCnt = 0;
   for (unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
     auto& stubResult = gpResult.getStubResults()[iLogicLayer];
     if (stubResult.getMuonStub()) {  //&& stubResult.getValid() //TODO!!!!!!!!!!!!!!!!1
+      OmtfHit hit(0);
+      hit.layer = iLogicLayer;
+      hit.quality = stubResult.getMuonStub()->qualityHw;
+      hit.eta = stubResult.getMuonStub()->etaHw;  //in which scale?
+      hit.valid = stubResult.getValid();
+
       int hitPhi = stubResult.getMuonStub()->phiHw;
       unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[algoMuon->getRefLayer()];
       int phiRefHit = gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->phiHw;
@@ -284,14 +293,6 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
         phiRefHit = 0;  //phi ref hit for the banding layer set to 0, since it should not be included in the phiDist
       }
 
-      OmtfHit hit(0);
-
-      hit.layer = iLogicLayer;
-      hit.quality = stubResult.getMuonStub()->qualityHw;
-      hit.eta = stubResult.getMuonStub()->etaHw;  //in which scale?
-      hit.valid = stubResult.getValid();
-
-      //phiDist = hitPhi - phiRefHit;
       hit.phiDist = hitPhi - phiRefHit;
 
       /*
@@ -301,12 +302,12 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
           <<" meanDistPhiValue   "<<omtfCand->getGoldenPatern()->meanDistPhiValue(iLogicLayer, omtfCand->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
           <<endl;*/
 
-      if (hit.phiDist > 504 || hit.phiDist < -512) {
+      /* if (hit.phiDist > 504 || hit.phiDist < -512) {
         edm::LogVerbatim("l1tOmtfEventPrint")
             //<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
             << " layer " << int(hit.layer) << " hit.phiDist " << hit.phiDist << " valid " << stubResult.getValid()
             << " !!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-      }
+      } */
 
       DetId detId(stubResult.getMuonStub()->detId);
       if (detId.subdetId() == MuonSubdetId::CSC) {
@@ -318,11 +319,13 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
                                     << (int)hit.eta << " valid " << (int)hit.valid << " phiDist " << (int)hit.phiDist
                                     << " z " << (int)hit.z << std::endl;
 
-      omtfHitWithQualToEventInput(hit, inputs, algoMuon->getRefLayer(), false);
+      hitCnt += omtfHitWithQualToEventInput(hit, inputs, algoMuon->getRefLayer(), false);
     }
   }
 
-  LogTrace("l1tOmtfEventPrint") << " " << __FUNCTION__ << ":" << __LINE__ << std::endl;
+  //noHitCnt input is calculated in the LutNetworkFixedPointRegression2Outputs::run
+  //so here hitCnt is used only for debug
+  LogTrace("l1tOmtfEventPrint") << " " << __FUNCTION__ << ":" << __LINE__ << " hitCnt " << hitCnt << std::endl;
 
   std::vector<double> nnResult(outputCnt);
   lutNetworkFP->run(inputs, noHitVal, nnResult);

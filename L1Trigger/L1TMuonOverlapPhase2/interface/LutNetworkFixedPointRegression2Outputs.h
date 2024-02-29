@@ -141,6 +141,12 @@ namespace lutNN {
           noHitsCnt++;
       }
 
+      //the minimum required number of hits for a good candidate is 3,
+      //and the total number of possible hits is 18 (number of OMTF layers)
+      //so the maximum noHitsCnt is 15. It must be constrained here, otherwise address for the the next layer would be out of LUT range
+      if (noHitsCnt > 15)
+        noHitsCnt = 15;
+
       unsigned int bias = (noHitsCnt << noHitCntShift);
 
       //layer1Bias switches the input of the layer2 (i.e. output of the layer1) do different regions in the LUTs
