@@ -32,25 +32,34 @@ int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int
 
 int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
                                            const L1Phase2MuDTThContainer* dtThDigis,
-                                           int bxNum) const {
+                                           int bxNum, int time) const {
   int dtThBins = 65536;  //65536. for [-6.3,6.3]
   float kconv = 1 / (dtThBins / 2.);
 
   float eta = -999;
   // get the theta digi
   bool foundeta = false;
-  int thetaDigiCnt = 0;
+  int chi2(999), tdiff(999999), quality(0); 
   for (const auto& thetaDigi : (*(dtThDigis->getContainer()))) {
-    if (thetaDigi.whNum() == dTChamberId.wheel() && thetaDigi.stNum() == dTChamberId.station() &&
-        thetaDigi.scNum() == (dTChamberId.sector() - 1) && (thetaDigi.bxNum() - 20) == bxNum) {
+    // first check we are in the same station/wheel/sector and BX
+    if (thetaDigi.whNum() != dTChamberId.wheel() || thetaDigi.stNum() != dTChamberId.station() ||
+        thetaDigi.scNum() != (dTChamberId.sector() - 1) || (thetaDigi.bxNum() - 20) == bxNum) 
+        continue;
+    
+    if (quality > thetaDigi.quality() || (quality == thetaDigi.quality() && chi2 > thetaDigi.chi2()) ||
+        (quality == thetaDigi.quality() && chi2 == thetaDigi.chi2() && tdiff > abs(thetaDigi.t0()-time))) {
+      quality = thetaDigi.quality();
+      chi2 = thetaDigi.chi2();
+      tdiff = abs(thetaDigi.t0()-time);
+ 
       // get the theta digi
       float k = thetaDigi.k() * kconv;  //-pow(-1.,z<0)*log(tan(atan(1/k)/2.));
-      int sign = sgn(thetaDigi.z());    // sign of the z coordinate
+      int sign = sgn(thetaDigi.z());    // sign of the z coordinate   
       eta = -1. * sign * log(fabs(tan(atan(1 / k) / 2.)));
+
       LogTrace("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") eta: " << eta
                                      << " k: " << k << " thetaDigi.k(): " << thetaDigi.k();
 
-      thetaDigiCnt++;
       //checking if the obtained eta has reasonable range - temporary fix
       if ( (dTChamberId.station() == 1 && (std::abs(eta) < 0.85 || std::abs(eta) > 1.20) ) ||
            (dTChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04) ) ||
