@@ -95,10 +95,10 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     } else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() > b->getPdfSum())
       return false;
     else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() == b->getPdfSum() &&
-             a->getPatternNum() > b->getPatternNum())
+             a->getPatternNumConstr() > b->getPatternNumConstr()) //should be rather getPatternNum(), but for FW getPatternNumConstr() is easier
       return false;
     else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() == b->getPdfSum() &&
-             a->getPatternNum() == b->getPatternNum() && a->getRefHitNumber() < b->getRefHitNumber())
+             a->getPatternNumConstr() == b->getPatternNumConstr())
       return false;
     else
       return true;
