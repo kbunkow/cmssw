@@ -205,7 +205,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000011000000001").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000010000000001").to_ulong())
         quality = 1;
-      else if (
+      else if ( (this->myOmtfConfig->fwVersion() == 8) && (
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000101").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010001000001").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000011000000001").to_ulong() ||
@@ -280,8 +280,42 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000100000000011").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000110000000001").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000100010000001").to_ulong() ||
-          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000110000").to_ulong())
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000110000").to_ulong()))
         quality = 8;
+      else if ( (this->myOmtfConfig->fwVersion() >= 9) && (
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000110000000000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000100000000001").to_ulong() ||
+          //static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000011000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000010000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000100000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001110000000000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010110000000000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001010000000100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001010000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010010000000001").to_ulong() ||
+          //static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000010000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000100000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001010000000101").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000010000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001100000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010100000000100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000100001000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001110000000101").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000110000000001").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000101").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000011010000000101").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001100000000100").to_ulong() ||
+          //static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000011000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001100000000101").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000111000000").to_ulong()
+          ))
+        quality = 8;
+
     }  //  if (abs(myCand->getEta()) == 121) quality = 4;
     if (abs(myCand->getEtaHw()) >= 121)
       quality = 0;  // changed from 4 on request from HI
