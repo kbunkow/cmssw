@@ -720,7 +720,7 @@ void PatternGenerator::modifyClassProb(double step) {
         int digitisedVal = rint(pdfMaxVal - log(classProb) / minPlog * pdfMaxVal);
 
         int newPdfVal = digitisedVal;  //gp->getPdf()[refLayerLogicNumber][iRefLayer][iPdf]
-
+        //watch out - the pt here is before re-calibration
         if (ptFrom == 0)
           newPdfVal += 15;
         if (ptFrom == 3.5)
@@ -736,6 +736,13 @@ void PatternGenerator::modifyClassProb(double step) {
         if (ptFrom == 7)
           newPdfVal += 2;
 
+        //if (ptFrom == 20) //pattern Key_13
+        //  newPdfVal += 1;
+        if (ptFrom >= 22 && ptFrom <= 26)
+          newPdfVal += 2;
+        if (ptFrom == 28) //pattern Key_17
+          newPdfVal += 1;
+          
         if (ptFrom == 100)
           newPdfVal = 16;
         if (ptFrom == 200)

@@ -11,12 +11,12 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
 
-versionIn = "ExtraplMB1nadMB2Simplified_t27_DTQ_4_4_mcWaw2023_OneOverPt_and_iPt2"
+versionIn = "ExtraplMB1nadMB2Simplified_t27_DTQ_2_4_mcWaw2023_OneOverPt_and_iPt2"
 #versionIn = "ExtraplMB1nadMB2DTQualAndEtaValueP1Scale_t18"
 #versionIn = "0x00011_oldSample_3_30Files"
 #Patterns_layerStat_ExtraplMB1nadMB2Simplified_t27_DTQ_2_4_mcWaw2023_OneOverPt_and_iPt2.root
 
-versionOut =  versionIn + "_classProb17_recalib2"
+versionOut =  "0x0020_" + versionIn + "_classProb22_recalib2"
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
