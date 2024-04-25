@@ -24,7 +24,6 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              int bxFrom,
                                              int bxTo,
                                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
-
   boost::property_tree::ptree procDataTree;
 
   for (const auto& digiIt : *dtPhDigis->getContainer()) {
@@ -51,7 +50,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   for (auto& thetaDigi : (*(dtThDigis->getContainer()))) {
-    if (thetaDigi.bxNum() - 20  >= bxFrom && thetaDigi.bxNum() - 20  <= bxTo) {
+    if (thetaDigi.bxNum() - 20 >= bxFrom && thetaDigi.bxNum() - 20 <= bxTo) {
       if (!mergePhiAndTheta) {
         addDTetaStubs(muonStubsInLayers, thetaDigi, iProcessor, procTyp);
       }

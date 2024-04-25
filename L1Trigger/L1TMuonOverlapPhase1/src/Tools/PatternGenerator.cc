@@ -740,9 +740,9 @@ void PatternGenerator::modifyClassProb(double step) {
         //  newPdfVal += 1;
         if (ptFrom >= 22 && ptFrom <= 26)
           newPdfVal += 2;
-        if (ptFrom == 28) //pattern Key_17
+        if (ptFrom == 28)  //pattern Key_17
           newPdfVal += 1;
-          
+
         if (ptFrom == 100)
           newPdfVal = 16;
         if (ptFrom == 200)

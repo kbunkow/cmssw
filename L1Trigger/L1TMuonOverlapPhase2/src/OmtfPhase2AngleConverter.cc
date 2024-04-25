@@ -52,20 +52,20 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
 
       thetaDigiCnt++;
       //checking if the obtained eta has reasonable range - temporary fix
-      if ( (dTChamberId.station() == 1 && (std::abs(eta) < 0.85 || std::abs(eta) > 1.20) ) ||
-           (dTChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04) ) ||
-           (dTChamberId.station() == 3 && (std::abs(eta) < 0.63 || std::abs(eta) > 0.92) )    ) {
+      if ((dTChamberId.station() == 1 && (std::abs(eta) < 0.85 || std::abs(eta) > 1.20)) ||
+          (dTChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04)) ||
+          (dTChamberId.station() == 3 && (std::abs(eta) < 0.63 || std::abs(eta) > 0.92))) {
         foundeta = false;
-        edm::LogVerbatim("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") wrong output eta: " << eta
-                                     << " k: " << k << " thetaDigi.k(): " << thetaDigi.k()<<" quality "<<thetaDigi.quality();
-      }
-      else
+        edm::LogVerbatim("OMTFReconstruction")
+            << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") wrong output eta: " << eta << " k: " << k
+            << " thetaDigi.k(): " << thetaDigi.k() << " quality " << thetaDigi.quality();
+      } else
         foundeta = true;
     }
   }
 
   //if more than 1 thetaDigi per given chamber - we don't use them, as they are ambiguous and we have no way to match them to the phi digis
-  if(thetaDigiCnt > 1)
+  if (thetaDigiCnt > 1)
     foundeta = false;
 
   if (foundeta) {

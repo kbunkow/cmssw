@@ -95,7 +95,8 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     } else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() > b->getPdfSum())
       return false;
     else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() == b->getPdfSum() &&
-             a->getPatternNumConstr() > b->getPatternNumConstr()) //should be rather getPatternNum(), but for FW getPatternNumConstr() is easier
+             a->getPatternNumConstr() >
+                 b->getPatternNumConstr())  //should be rather getPatternNum(), but for FW getPatternNumConstr() is easier
       return false;
     else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() == b->getPdfSum() &&
              a->getPatternNumConstr() == b->getPatternNumConstr())
@@ -153,8 +154,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
         if (omtfConfig->getRefToLogicNumber()[muIN1->getRefLayer()] <= 5 && (omtfConfig->fwVersion() >= 6) &&
             (abs(muIN1->getEtaHw()) == 75 || abs(muIN1->getEtaHw()) == 79 || abs(muIN1->getEtaHw()) == 92) &&
             (abs(muIN2->getEtaHw()) != 75 && abs(muIN2->getEtaHw()) != 79 && abs(muIN2->getEtaHw()) != 92 &&
-                abs(muIN2->getEtaHw()) != 121)) {
-
+             abs(muIN2->getEtaHw()) != 121)) {
           muIN1->setEta(muIN2->getEtaHw());
         }
       }

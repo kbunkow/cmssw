@@ -7,7 +7,7 @@
 
 class OmtfPhase2AngleConverter : public OmtfAngleConverter {
 public:
-  OmtfPhase2AngleConverter() : OmtfAngleConverter() {};
+  OmtfPhase2AngleConverter() : OmtfAngleConverter(){};
   ~OmtfPhase2AngleConverter() override = default;
 
   // Convert DT phi to OMTF coordinate system.
