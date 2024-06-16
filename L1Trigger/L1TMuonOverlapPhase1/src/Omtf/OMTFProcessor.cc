@@ -539,8 +539,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
       //if given abs(targetStubEta) value is not present in the map, it is added with default value of 0
       //so it should be good. The only problem is that the map can grow...
       //TODO change to targetStubR when it is implemented in the FW
-      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
-      //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
+      //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
+      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
     } else {
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
     }

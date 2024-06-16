@@ -56,9 +56,9 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
           (dTChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04)) ||
           (dTChamberId.station() == 3 && (std::abs(eta) < 0.63 || std::abs(eta) > 0.92))) {
         foundeta = false;
-        edm::LogVerbatim("OMTFReconstruction")
+        /*edm::LogVerbatim("OMTFReconstruction")
             << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") wrong output eta: " << eta << " k: " << k
-            << " thetaDigi.k(): " << thetaDigi.k() << " quality " << thetaDigi.quality();
+            << " thetaDigi.k(): " << thetaDigi.k() << " quality " << thetaDigi.quality();*/
       } else
         foundeta = true;
     }
