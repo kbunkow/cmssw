@@ -159,10 +159,10 @@ void PatternGenerator::updateStat() {
 
         bool fired = false;
         if (gpResult.getStubResults()[iLayer].getMuonStub()) {
-          if (omtfConfig->isBendingLayer(iLayer)) {
+          /*if (omtfConfig->isBendingLayer(iLayer)) {
             if (gpResult.getStubResults()[iLayer].getMuonStub()->qualityHw >= 4)  //TODO change quality cut if needed
               fired = true;
-          } else
+          } else*/
             fired = true;
         }
 
