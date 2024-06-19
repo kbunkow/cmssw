@@ -10,14 +10,15 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-versionIn = "ExtraplMB1nadMB2DTQualAndRFixedP_ValueP1Scale_DT_2_2_t30_mcWaw2023_OneOverPt_and_iPt2"
+versionIn = "ExtraplMB1nadMB2DTQualAndRFixedP_ValueP1Scale_DT_2_2_2_t31_mcWaw2023_OneOverPt_and_iPt2"
+
 #versionIn = "ExtraplMB1nadMB2DTQualAndEtaFixedP_ValueP1Scale_t20_SingleMu_mcWaw2023_OneOverPt"
 #versionIn = "ExtraplMB1nadMB2DTQualAndEtaValueP1Scale_t18"
 #versionIn = "0x00011_oldSample_3_30Files"
 
 #versionOut =  versionIn + "_classProb17_recalib2" #_classProb17_recalib2_minDP0
 
-versionOut =  "ExtraplMB1nadMB2DTQualAndRFixedP_DT_2_2_t30_" + "_classProb17_recalib2"
+versionOut =  "ExtraplMB1nadMB2DTQualAndRFixedP_DT_2_2_2_t31_" + "_classProb17_recalib2"
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",

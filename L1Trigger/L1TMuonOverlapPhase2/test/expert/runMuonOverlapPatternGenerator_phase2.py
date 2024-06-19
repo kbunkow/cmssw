@@ -19,7 +19,7 @@ runDebug = "INFO" # or "INFO" DEBUG
 
 #version = "ExtraplMB1nadMB2DTQualAndEtaFixedP_ValueP1Scale_t20_v1_SingleMu"
 #version = "noExtrapl_ValueP1Scale_t18_qualConverted_min4_ipT1_deltaPhiVsPhiRef_fixedDTScale"
-version = "ExtraplMB1nadMB2DTQualAndRFixedP_ValueP1Scale_DT_2_2_t30_" + filesNameLike
+version = "ExtraplMB1nadMB2DTQualAndRFixedP_ValueP1Scale_DT_2_2_2_t31_" + filesNameLike
 
 regeneratedL1DT = True
 
@@ -239,7 +239,7 @@ process.simOmtfPhase2Digis.minCSCStubR = cms.int32(500) #[cm]
 process.simOmtfPhase2Digis.minDtPhiQuality = cms.int32(2)
 process.simOmtfPhase2Digis.minDtPhiBQuality = cms.int32(2)
 
-process.simOmtfPhase2Digis.dtRefHitMinQuality =  cms.int32(4)
+process.simOmtfPhase2Digis.dtRefHitMinQuality =  cms.int32(2)
 
 #process.simOmtfPhase2Digis.usePhiBExtrapolationFromMB1 = cms.bool(True)
 #process.simOmtfPhase2Digis.usePhiBExtrapolationFromMB2 = cms.bool(True)
