@@ -11,7 +11,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
 
   ##  XML / PATTERNS file:
   configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0209.xml"),
-  extrapolFactorsFilename = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/ExtrapolationFactors_ExtraplMB1nadMB2DTQualAndR_EtaValueP1Scale_t31.xml"),
+  extrapolFactorsFilename = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/ExtrapolationFactors_ExtraplMB1nadMB2_R_EtaValueP1Scale_t34.xml"),
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_ExtraplMB1nadMB2DTQualAndEtaFixedP_ValueP1Scale_t20_v1_SingleMu_iPt_and_OneOverPt_classProb17_recalib2_minDP0.xml"),
   patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_ExtraplMB1nadMB2DTQualAndRFixedP_DT_2_2_t30__classProb17_recalib2.xml"),
 
@@ -52,7 +52,9 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
 
   usePhiBExtrapolationFromMB1 = cms.bool(True),
   usePhiBExtrapolationFromMB2 = cms.bool(True),
-  useStubQualInExtr  = cms.bool(True),
+  #in the DTTriggerPhase2 in PR44924 the phi is defined always in the middle of the chamber, even for the uncorelated stubs
+  #so the qulaity doeas not maater in the extrapolation
+  useStubQualInExtr  = cms.bool(False),
   useEndcapStubsRInExtr  = cms.bool(True),
   useFloatingPointExtrapolation  = cms.bool(False),
 

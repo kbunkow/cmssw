@@ -372,15 +372,20 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     //throw cms::Exception("OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB: wrong refStubLogicLayer " + std::to_string(refLogicLayer) );
   }
 
-  if(refHitSuperLayer == 1) {
-    rRefLayer = rRefLayer - 23.5 / 2;  //inner superlayer
-  }
-  else if (refHitSuperLayer == 3) { //using 3 here as in the L1Phase2MuDTPhDigi::slNum(), so value 2 is not used, what might not be optimal for FW,
-    rRefLayer = rRefLayer + 23.5 / 2;  //inner superlayer
-  }
-
   int reflLayerIndex = refLogicLayer == 0 ? 0 : 1;
-  reflLayerIndex = (refHitSuperLayer << 1) | reflLayerIndex;
+  if (useStubQualInExtr) {
+  	//the phase-2 DT Trigger Primitives, since CMSSW_14_2_0_pre1 define phi always in "the middle of the chamber"
+  	//also for the uncorrelated stubs
+  	//so the below correction has sense only of the phase-1
+    if(refHitSuperLayer == 1) {
+      rRefLayer = rRefLayer - 23.5 / 2;  //inner superlayer
+    }
+    else if (refHitSuperLayer == 3) { //using 3 here as in the L1Phase2MuDTPhDigi::slNum(), so value 2 is not used, what might not be optimal for FW,
+      rRefLayer = rRefLayer + 23.5 / 2;  //inner superlayer
+    }
+
+    reflLayerIndex = (refHitSuperLayer << 1) | reflLayerIndex;
+  }
 
   if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4 || (targetLayer >= 10 && targetLayer <= 14)) {
     //all units are cm. Values from the CMS geometry
@@ -524,7 +529,9 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
   int phiExtr = 0;  //delta phi extrapolated
 
   int reflLayerIndex = refLogicLayer == 0 ? 0 : 1;
-  reflLayerIndex = (refHitSuperLayer << 1) | reflLayerIndex;
+
+  if (useStubQualInExtr)
+    reflLayerIndex = (refHitSuperLayer << 1) | reflLayerIndex;
 
   int extrFactor = 0;
 
