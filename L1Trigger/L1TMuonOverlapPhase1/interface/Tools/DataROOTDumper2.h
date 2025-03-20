@@ -54,25 +54,25 @@ public:
   float deltaPhi = 0, deltaEta = 0;
 
   //float omtfPtCont = 0;
+  int stubNo = 0;
+  std::vector<unsigned int> stubLayer;
+  std::vector<unsigned int> stubQuality;
+  std::vector<int> stubZ, stubValid, stubEta, stubPhi,stubPhiB, stubR, stubPhiDist, stubDeltaR;
+  std::vector<int> stubIsRefLayer;
+  std::vector<int> stubBx, stubTiming;
+  std::vector<int> stubDetId;
+  std::vector<int> stubType;
 
-  struct Hit {
-    union {
-      unsigned long rawData = 0;
-
-      struct {
-        char layer;
-        char quality;
-        char z;
-        char valid;
-        short deltaR;
-        short phiDist;
-      };
-    };
-
-    ~Hit() {}
-  };
-
-  std::vector<unsigned long> hits;
+  int inputStubNo = 0;
+  std::vector<unsigned int> inputStubLayer;
+  std::vector<unsigned int> inputStubQuality;
+  std::vector<int> inputStubZ, inputStubEta, inputStubPhi,inputStubPhiB, inputStubR;
+  std::vector<int> inputStubIsRefLayer, inputStubProc;
+  std::vector<int> inputStubBx, inputStubTiming;
+  std::vector<int> inputStubDetId;
+  std::vector<int> inputStubType;
+  std::vector<int> inputStubIsMatched;
+  
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
@@ -89,10 +89,18 @@ public:
                                 const AlgoMuons& algoCandidates,
                                 const AlgoMuons& gbCandidates,
                                 const FinalMuons& finalMuons) override;
-
+  
+  void observeEventBegin(const edm::Event& iEvent) override;
   void observeEventEnd(const edm::Event& iEvent,
                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
+  // Methods for inputStubs...
+  void addOmtfInputStubsFromProc(int iProc, l1t::tftype mtfType, AlgoMuonPtr& procMuon);
+  bool isMatchedStub(const MuonStubPtr& stub, AlgoMuonPtr& procMuon);
+  bool isRefLayer(const MuonStubPtr& stub, AlgoMuonPtr& procMuon);
+  void clearOmtfStubs();
+  void clearOmtfInputStubs();
+  
   void endJob() override;
 
 private:
@@ -103,7 +111,7 @@ private:
   TTree* rootTree = nullptr;
 
   OmtfEvent omtfEvent;
-
+  std::vector<std::shared_ptr<OMTFinput> > inputInProcs;
   unsigned int evntCnt = 0;
 
   TH1I* ptGenPos = nullptr;
