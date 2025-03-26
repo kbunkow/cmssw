@@ -22,9 +22,11 @@
 DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg,
                                  const OMTFConfiguration* omtfConfig,
                                  CandidateSimMuonMatcher* candidateSimMuonMatcher)
-    : EmulationObserverBase(edmCfg, omtfConfig), candidateSimMuonMatcher(candidateSimMuonMatcher) {
+    : EmulationObserverBase(edmCfg, omtfConfig), candidateSimMuonMatcher(candidateSimMuonMatcher), inputInProcs(omtfConfig->processorCnt())
+    {
   edm::LogVerbatim("l1tOmtfEventPrint") << " omtfConfig->nTestRefHits() " << omtfConfig->nTestRefHits()
                                         << " event.omtfGpResultsPdfSum.num_elements() " << endl;
+
   initializeTTree();
 
   if (edmCfg.exists("dumpKilledOmtfCands"))
@@ -136,9 +138,10 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                const AlgoMuons& algoCandidates,
                                                const AlgoMuons& gbCandidates,
                                                const FinalMuons& finalMuons) {
+
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
   inputInProcs[procIndx] = input;
-                                               }
+}
 
 void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
@@ -396,8 +399,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       if (matchingResult.muonCand->trackFinderType() == l1t::omtf_neg) {
         omtfEvent.omtfProcessor *= -1;
       }
-      addOmtfInputStubsFromProc(matchingResult.muonCand->processor(), matchingResult.muonCand->trackFinderType(),
-                                matchingResult.procMuon);
+      //addOmtfInputStubsFromProc(matchingResult.muonCand->processor(), matchingResult.muonCand->trackFinderType(),
+      //                          matchingResult.procMuon);
       addOmtfCand(matchingResult.procMuon);
       rootTree->Fill();
       clearOmtfStubs();

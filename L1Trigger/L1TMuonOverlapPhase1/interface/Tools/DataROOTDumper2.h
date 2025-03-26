@@ -95,6 +95,7 @@ public:
                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
   // Methods for inputStubs...
+  void addOmtfInputStubsFromProc(int iProc, l1t::tftype mtfType) {};
   void addOmtfInputStubsFromProc(int iProc, l1t::tftype mtfType, AlgoMuonPtr& procMuon);
   bool isMatchedStub(const MuonStubPtr& stub, AlgoMuonPtr& procMuon);
   bool isRefLayer(const MuonStubPtr& stub, AlgoMuonPtr& procMuon);
