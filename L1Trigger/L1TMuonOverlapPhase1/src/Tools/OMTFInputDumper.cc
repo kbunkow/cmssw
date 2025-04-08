@@ -1,8 +1,8 @@
 /*
  * OMTFInputDumper.cc
  *
- *  Created on: Dec 11, 2019
- *      Author: kbunkow
+ *  Created on: Apr 8, 2025
+ *      Author: kbunkow, folguera
  */
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/OMTFInputDumper.h"

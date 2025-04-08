@@ -1,8 +1,8 @@
 /*
  * OMTFInputDumper.h
  *
- *  Created on: Dec 11, 2019
- *      Author: kbunkow
+ *  Created on: Apr 8, 2025
+ *      Author: kbunkow, folguera
  */
 
 #ifndef L1T_OmtfP1_TOOLS_OMTFInputDumper_H_
