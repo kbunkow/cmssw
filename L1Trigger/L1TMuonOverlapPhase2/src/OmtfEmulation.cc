@@ -163,10 +163,9 @@ void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
   }
 
   //TODO un-comment when convertToOuputScalesPhase2 is implemented
-  /*
-  omtfProc->setOutpuConversionFunction([&](l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
-    return this->convertToOuputScalesPhase2(mtfType, gbCandidates);
-  }); */
+  omtfProc->setOutpuConversionFunction([&](unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
+    return this->convertToOuputScalesPhase2(iProcessor, mtfType, gbCandidates);
+  }); 
 }
 
 void OmtfEmulation::getQualityFromFiredLayers(FinalMuon& finalMuon) {
@@ -182,26 +181,57 @@ FinalMuons OmtfEmulation::convertToOuputScalesPhase2(unsigned int iProcessor,
                                                      l1t::tftype mtfType,
                                                      const AlgoMuons& gbCandidates) {
   FinalMuons finalMuons;
-  auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
-  if (omtfProcGoldenPat) {
-    finalMuons = omtfProcGoldenPat->convertToOuputScalesPhase1(
-        iProcessor, mtfType, gbCandidates);  //temporary solution, TODO remove
+  for (auto& myCand : gbCandidates) {
+    FinalMuon finalMuon(myCand);
 
-    if (ptAssignment) {
-      for (auto& finalMuon : finalMuons) {
-        //TODO convert the pts to the GMT output scales
-        finalMuon.setPt(finalMuon.getAlgoMuon()->getPtNNConstr());
-        finalMuon.setPtUnconstr(finalMuon.getAlgoMuon()->getPtNNUnconstr());
-        finalMuon.setSign(finalMuon.getAlgoMuon()->getChargeNNConstr() < 0 ? 1 : 0);
-        //finalMuon.setQuality(finalMuon.getAlgoMuon()->getQualityNN());
+    if (myCand->getPdfSumConstr() > 0 && myCand->getFiredLayerCntConstr() >= 3)
+      finalMuon.setPt(round(myCand->getPtConstr()* 0.5 / Phase2L1GMT::LSBpt));
+    else if (myCand->getPtUnconstr() > 0)
+      finalMuon.setPt(round(1 * 0.5 / Phase2L1GMT::LSBpt));
+    else
+      finalMuon.setPt(0);
 
-        getQualityFromFiredLayers(finalMuon);
-      }
+    if (finalMuon.getPt() == 0)
+      continue;
+    
+    finalMuon.setSign(myCand->getChargeConstr()<0 ? 1 : 0);
+
+    int etaValue = myCand->getEtaHw();
+    if (mtfType == l1t::omtf_pos) {
+      finalMuon.setEta(etaValue* 0.010875 / Phase2L1GMT::LSBeta);
     }
-    //TODO add conversion of eta anf phi from gbCandidates to the GMT output scales
+    else   {
+      finalMuon.setEta((-1)*etaValue * 0.010875 / Phase2L1GMT::LSBeta);
+    }
+
+    int phiValue = myCand->getPhi();
+    if (phiValue >= int(this->omtfConfig->nPhiBins()))
+      phiValue -= this->omtfConfig->nPhiBins();
+    //new the else cond.
+    //phiValue = floor(phiValue * 437. / (1 << 12));
+    float LSBphi_omtf = 2 * M_PI / this->omtfConfig->nPhiBins();
+    int globPhi = iProcessor * 1800 + phiValue; // this is the phi in the OMTF in global coordinates 
+    // first processor starts at CMS phi = 15 degrees (225 in int)... Handle wrap-around with %. Add 5400 to make sure the number is positive
+    globPhi = (globPhi + 5400) % this->omtfConfig->nPhiBins(); 
+    // convert to GMT Phi (2*pi / 2^13)
+    finalMuon.setPhi(round(phiValue * LSBphi_omtf / Phase2L1GMT::LSBphi));
+
+    if (myCand->getPtUnconstr() >= 0) {
+      finalMuon.setPtUnconstr(round(myCand->getPtUnconstr() * 1.0 / Phase2L1GMT::LSBpt) );
+    } else {
+      finalMuon.setPtUnconstr(0);
+    }
+    if (ptAssignment) {
+      finalMuon.setPt(round(myCand->getPtNNConstr() * 0.5 / Phase2L1GMT::LSBpt));
+      finalMuon.setPtUnconstr(round(myCand->getPtNNUnconstr()* 1.0 / Phase2L1GMT::LSBpt));
+      finalMuon.setSign(myCand->getChargeNNConstr() < 0 ? 1 : 0);
+      finalMuon.setQuality(myCand->getQualityNN());
+    }
+    finalMuons.push_back(finalMuon);
   }
   return finalMuons;
 }
+
 
 l1t::SAMuonCollection OmtfEmulation::getSAMuons(unsigned int iProcessor,
                                                 l1t::tftype mtfType,
@@ -212,47 +242,12 @@ l1t::SAMuonCollection OmtfEmulation::getSAMuons(unsigned int iProcessor,
   for (auto& finalMuon : finalMuons) {
     unsigned int qual = finalMuon.getQuality();
     int charge = finalMuon.getSign();
-
-    //TODO remove the below conversions when the conversions in the convertToOuputScalesPhase2 are implemented.
-    ///N.B. the below conversions are from phase-1 uGMT scales to the phase-2 GMT scales.
-    //What is needed in the convertToOuputScalesPhase2 is conversion from OTMF internal scales to  the phase-2 GMT scales
-    unsigned int pt = 0;
-    if (!uncostrainedPt && finalMuon.getPt() > 0)
-      pt = round(finalMuon.getPt() * 0.5 / Phase2L1GMT::LSBpt);  // Phase-1 LSB 0.5GeV
-    if (uncostrainedPt && finalMuon.getPtUnconstr() > 0)
-      pt = round(finalMuon.getPtUnconstr() * 1.0 / Phase2L1GMT::LSBpt);  // Phase-1 LSB 1.0GeV!!
-
-    // BEWARE: THIS CONVERSION IS ONLY VALID FOR OMTF
-    constexpr double p1phiLSB = 2 * M_PI / 576;
-    // From the uGMTConfiguration of OMTF. OMTF send in local phi!!
-    // all others correspond to 120 degree sectors = 192 in int-scale
-    int globPhi = iProcessor * 192 + finalMuon.getPhi();
-    // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
-    globPhi = (globPhi + 600) % 576;
-    int phi = round(globPhi * p1phiLSB / Phase2L1GMT::LSBphi);             // Phase-1 LSB (2*pi/576)
-    int eta = round(finalMuon.getEta() * 0.010875 / Phase2L1GMT::LSBeta);  // Phase-1 LSB 0.010875
-
-    // FIXME: Below are not well defined in phase1 GMT
-    // Using the version from Correlator for now
-    int z0 = 0;  // No tracks info in Phase 1
-    // Use 2 bits with LSB = 30cm for BMTF and 25cm for EMTF currently, but subjet to change
+    unsigned int pt = uncostrainedPt ? finalMuon.getPtUnconstr() : finalMuon.getPt();
+    int eta = finalMuon.getEta();
+    int phi = finalMuon.getPhi();
+    int z0 = 0;  // No tracks info
     int d0 = finalMuon.getHwD0();
-
-    //Here do not use the word format to GT but use the word format expected by GMT
-    /*
-    int bstart = 0;
-    wordtype word(0);
-    bstart = wordconcat<wordtype>(word, bstart, 1, 1);
-    bstart = wordconcat<wordtype>(word, bstart, charge, 1);
-    bstart = wordconcat<wordtype>(word, bstart, pt, BITSPT);
-    bstart = wordconcat<wordtype>(word, bstart, phi, BITSPHI);
-    bstart = wordconcat<wordtype>(word, bstart, eta, BITSETA);
-    //  bstart = wordconcat<wordtype>(word, bstart, z0, BITSSAZ0); NOT YET SUPPORTED BY GMT
-    bstart = wordconcat<wordtype>(word, bstart, d0, BITSSAD0);
-    bstart = wordconcat<wordtype>(
-        word, bstart, qual, 8);  //FOR NOW 8 bits to be efficienct with Ghost busting. THIS IS ***NOT*** THE FINAL QUALITY
-*/
-
+  
     // Calculate Lorentz Vector
     math::PtEtaPhiMLorentzVector p4(pt * Phase2L1GMT::LSBpt, eta * Phase2L1GMT::LSBeta, phi * Phase2L1GMT::LSBphi, 0.0);
     l1t::SAMuon saMuon(p4, charge, pt, eta, phi, z0, d0, qual);
