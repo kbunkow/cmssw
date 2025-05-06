@@ -17,7 +17,8 @@
 
 class OmtfEmulation : public OMTFReconstruction {
 public:
-  OmtfEmulation(const edm::ParameterSet& edmParameterSet,
+  OmtfEmulation(//unsigned int iProcessor,
+                const edm::ParameterSet& edmParameterSet,
                 MuStubsInputTokens& muStubsInputTokens,
                 MuStubsPhase2InputTokens& muStubsPhase2InputTokens);
 
