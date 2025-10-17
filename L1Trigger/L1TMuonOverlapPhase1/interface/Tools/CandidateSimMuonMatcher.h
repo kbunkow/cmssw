@@ -66,8 +66,7 @@ public:
 
   double matchingLikelihood = 0;
 
-  const l1t::RegionalMuonCand* muonCand = nullptr;
-  AlgoMuonPtr procMuon;  //Processor gbCandidate
+  FinalMuonPtr muonCand;
 
   //to avoid using simTrack or trackingParticle
   int pdgId = 0;
@@ -113,21 +112,14 @@ public:
 
   void observeEventBegin(const edm::Event& event) override;
 
-  void observeEventEnd(const edm::Event& event,
-                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
+  void observeEventEnd(const edm::Event& event, FinalMuons& finalMuons) override;
 
   void endJob() override;
 
   int calcGlobalPhi(int locPhi, int proc);
 
   //simplified ghost busting
-  //only candidates in the bx=0 are included
-  //ghost busts at the same time the  mtfCands and the gbCandidates
-  //gbCandidates - all gbCandidates from all processors, should be one-to-one as the mtfCands,
-  //and the ghostBustedProcMuons are one-to-onr to the returned RegionalMuonCands
-  std::vector<const l1t::RegionalMuonCand*> ghostBust(const l1t::RegionalMuonCandBxCollection* mtfCands,
-                                                      const AlgoMuons& gbCandidates,
-                                                      AlgoMuons& ghostBustedProcMuons);
+  FinalMuons ghostBust(const FinalMuons& finalMuons);
 
   FreeTrajectoryState simTrackToFts(const SimTrack& simTrack, const SimVertex& simVertex);
 
@@ -143,40 +135,34 @@ public:
 
   void propagate(MatchingResult& result);
 
-  void match(std::vector<const l1t::RegionalMuonCand*>& muonCands,
-             AlgoMuons& ghostBustedProcMuons,
+  void match(const FinalMuons& finalMuons,
              MatchingResult& result,
              std::vector<MatchingResult>& matchingResults);
 
-  void match(const l1t::RegionalMuonCand* omtfCand, const AlgoMuonPtr& procMuon, MatchingResult& result);
+  void match(const FinalMuonPtr& finalMuon3, MatchingResult& result);
 
   std::vector<MatchingResult> cleanMatching(std::vector<MatchingResult> matchingResults,
-                                            std::vector<const l1t::RegionalMuonCand*>& muonCands,
-                                            AlgoMuons& ghostBustedProcMuons);
+                                            const FinalMuons& finalMuons);
 
-  std::vector<MatchingResult> match(std::vector<const l1t::RegionalMuonCand*>& muonCands,
-                                    AlgoMuons& ghostBustedProcMuons,
+  std::vector<MatchingResult> match(const FinalMuons& finalMuons,
                                     const edm::SimTrackContainer* simTracks,
                                     const edm::SimVertexContainer* simVertices,
                                     std::function<bool(const SimTrack&)> const& simTrackFilter);
 
-  std::vector<MatchingResult> match(std::vector<const l1t::RegionalMuonCand*>& muonCands,
-                                    AlgoMuons& ghostBustedProcMuons,
+  std::vector<MatchingResult> match(const FinalMuons& finalMuons,
                                     const TrackingParticleCollection* trackingParticles,
                                     std::function<bool(const TrackingParticle&)> const& simTrackFilter);
 
   //matching without any propagation, just checking basic geometrical agreement between simMuon and candidates
   //problem with propagation is the it does not work for low pt muons (pt < ~3GeV)
   //which is not good for dumping the data for the NN training. So for that purpose it is better to use the matchSimple
-  std::vector<MatchingResult> matchSimple(std::vector<const l1t::RegionalMuonCand*>& muonCands,
-                                          AlgoMuons& ghostBustedProcMuons,
+  std::vector<MatchingResult> matchSimple(const FinalMuons& finalMuons,
                                           const edm::SimTrackContainer* simTracks,
                                           const edm::SimVertexContainer* simVertices,
                                           std::function<bool(const SimTrack&)> const& simTrackFilter);
 
   //no matching, just collect muonCands
-  std::vector<MatchingResult> collectMuonCands(std::vector<const l1t::RegionalMuonCand*>& muonCands,
-                                               AlgoMuons& ghostBustedProcMuons);
+  std::vector<MatchingResult> collectMuonCands(const FinalMuons& finalMuons);
 
   std::vector<MatchingResult> getMatchingResults() { return matchingResults; }
 

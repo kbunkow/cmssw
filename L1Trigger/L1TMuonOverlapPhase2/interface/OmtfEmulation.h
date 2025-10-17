@@ -30,9 +30,15 @@ public:
                     const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) override;
 
   //RegionalMuonCandBxCollection is filled for backward compatibility of analyzers etc.
-  std::unique_ptr<l1t::SAMuonCollection> run(const edm::Event& iEvent,
-                                             const edm::EventSetup& evSetup,
-                                             std::unique_ptr<l1t::RegionalMuonCandBxCollection>& candidates);
+
+  struct OmtfOutptuCollections {
+    std::unique_ptr<l1t::SAMuonCollection> constrSaMuons; //ip constrained candidates
+    std::unique_ptr<l1t::SAMuonCollection> unConstrSaMuons; //ip unconstrained candidates
+    std::unique_ptr<l1t::RegionalMuonCandBxCollection> regionalCandidates; //for backward compatibility of analyzers etc.
+  };
+
+  OmtfOutptuCollections run(const edm::Event& iEvent,
+                                             const edm::EventSetup& evSetup);
 
 private:
   MuStubsPhase2InputTokens& muStubsPhase2InputTokens;
@@ -40,14 +46,14 @@ private:
 
   std::map<unsigned int, int> firedLayersToQuality;
 
-  void getQualityFromFiredLayers(FinalMuon& finalMuon);
+  void assignQualityPhase2(AlgoMuons::value_type& algoMuon);
 
-  FinalMuons convertToOuputScalesPhase2(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates);
+  void convertToGmtScalesPhase2(unsigned int iProcessor, l1t::tftype mtfType, FinalMuonPtr& finalMuon);
 
   l1t::SAMuonCollection getSAMuons(unsigned int iProcessor,
                                    l1t::tftype mtfType,
                                    FinalMuons& finalMuons,
-                                   bool uncostrainedPt);
+                                   bool costrainedPt);
 };
 
 #endif /* L1Trigger_L1TMuonOverlapPhase2_OmtfEmulation_h */

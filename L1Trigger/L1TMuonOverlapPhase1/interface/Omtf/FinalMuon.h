@@ -13,51 +13,146 @@
 class FinalMuon {
 public:
   FinalMuon() {};
-  FinalMuon(AlgoMuonPtr algoMuon) : algoMuon(algoMuon) {};
+  FinalMuon(const AlgoMuonPtr& algoMuon) :
+    algoMuon(algoMuon),
+    quality(algoMuon->getQuality()),
+    firedLayerCnt(algoMuon->getFiredLayerCnt()) {};
 
   virtual ~FinalMuon() {};
 
   const AlgoMuonPtr& getAlgoMuon() const { return algoMuon; }
 
-  int getEta() const { return eta; }
+  int getSign() const { return sign; }
 
-  void setEta(int eta = 0) { this->eta = eta; }
+  void setSign(int sign = 0) { this->sign = sign; }
 
-  int getHwD0() const { return hwD0; }
+  void setBx(int bx = 0) {
+    this->bx = bx;
+  }
 
-  void setHwD0(int hwD0) { this->hwD0 = hwD0; }
+  int getBx() const {
+    return bx;
+  }
 
-  int getPhi() const { return phi; }
+  int getProcessor() const {
+    return processor;
+  }
 
-  void setPhi(int phi = 0) { this->phi = phi; }
+  void setProcessor(int processor = -1) {
+    this->processor = processor;
+  }
 
-  int getPt() const { return pt; }
-
-  void setPt(int pt = 0) { this->pt = pt; }
-
-  int getPtUnconstr() const { return ptUnconstr; }
-
-  void setPtUnconstr(int ptUnconstr = 0) { this->ptUnconstr = ptUnconstr; }
+  void setTrackFinderType(l1t::tftype mtfType) {
+    this->mtfType = mtfType;
+  }
+  l1t::tftype trackFinderType() const {
+    return mtfType;
+  }
 
   int getQuality() const { return quality; }
 
   void setQuality(int quality = 0) { this->quality = quality; }
 
-  int getSign() const { return sign; }
+  float getPtGev() const {
+    return ptGev;
+  }
 
-  void setSign(int sign = 0) { this->sign = sign; }
+  void setPtGev(float ptGev = -1) {
+    this->ptGev = ptGev;
+  }
+
+  float getPtUnconstrGev() const {
+    return ptUnconstrGev;
+  }
+  
+  void setPtUnconstrGev(float ptUnconstrGev = -1) {
+    this->ptUnconstrGev = ptUnconstrGev;
+  }
+
+  float getEtaRad() const {
+    return etaRad;
+  }
+
+  void setEtaRad(float etaRad = -10) {
+    this->etaRad = etaRad;
+  }
+
+  float getPhiRad() const {
+    return phiRad;
+  }
+
+  void setPhiRad(float phiRad = -10) {
+    this->phiRad = phiRad;
+  }
+
+  int getPtGmt() const {
+    return ptGmt;
+  }
+  void setPtGmt(int ptGmt = 0) {
+    this->ptGmt = ptGmt;
+  }
+  int getPtUnconstrGmt() const {
+    return ptUnconstrGmt;
+  }
+  void setPtUnconstrGmt(int ptUnconstrGmt = 0) {
+    this->ptUnconstrGmt = ptUnconstrGmt;
+  }
+  int getPhiGmt() const {
+    return phiGmt;
+  }
+  void setPhiGmt(int phiGmt = 0) {
+    this->phiGmt = phiGmt;
+  }
+  int getEtaGmt() const {
+    return etaGmt;
+  }
+  void setEtaGmt(int etaGmt = 0) {
+    this->etaGmt = etaGmt;
+  }
+
+  int getFiredLayerCnt() const {
+    return firedLayerCnt;
+  }
+
+  void setFiredLayerCnt(int firedLayerCnt = 0) {
+    this->firedLayerCnt = firedLayerCnt;
+  }
+
+  int getFiredLayerBits() const {
+    return firedLayerBits;
+  }
+
+  void setFiredLayerBits(int firedLayerBits = 0) {
+    this->firedLayerBits = firedLayerBits;
+  }
 
 private:
   AlgoMuonPtr algoMuon;
-  int pt = 0;
-  int ptUnconstr = 0;
-  int phi = 0;
-  int eta = 0;
-  int sign = 0;
+
+  int bx = 0;
+  int processor = -1;
+  l1t::tftype mtfType = l1t::omtf_pos;
+
   int quality = 0;
-  int hwD0 = 0;  //displacement i.e. dxy
+
+  int sign = 0;
+  
+  float ptGev = -1;
+  float ptUnconstrGev = -1;
+  float phiRad = -10;
+  float etaRad = -10;
+
+  int ptGmt = 0;
+  int ptUnconstrGmt = 0;
+  int phiGmt = 0;
+  int etaGmt = 0;
+
+  int firedLayerCnt = 0;
+
+  int firedLayerBits = 0;
 };
 
-typedef std::vector<FinalMuon> FinalMuons;
+typedef std::shared_ptr<FinalMuon> FinalMuonPtr;
+typedef std::vector<FinalMuonPtr> FinalMuons;
 
 #endif /* FinalMuon */

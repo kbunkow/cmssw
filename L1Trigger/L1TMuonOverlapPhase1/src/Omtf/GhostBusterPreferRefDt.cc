@@ -183,7 +183,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     for (unsigned int iMu2 = refHitCleanCandsFixedEta.size() - 1; iMu2 >= iMu1 + 1; iMu2--) {
       auto& muIN2 = refHitCleanCandsFixedEta[iMu2];
       if (muIN2->isValid() &&
-          std::abs(omtfConfig->procPhiToGmtPhi(muIN1->getPhi()) - omtfConfig->procPhiToGmtPhi(muIN2->getPhi())) < 8) {
+          std::abs(omtfConfig->procPhiToGmtPhase1Phi(muIN1->getPhi()) - omtfConfig->procPhiToGmtPhase1Phi(muIN2->getPhi())) < 8) {
         //the candidates are sorted, so only the  muIN2 can be killed, as it is "worse" than the muIN1
         refHitCleanCandsFixedEta[iMu2]->kill();
         refHitCleanCandsFixedEta[iMu1]->getKilledMuons().emplace_back(muIN2);

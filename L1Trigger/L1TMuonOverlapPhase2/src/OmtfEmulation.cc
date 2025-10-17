@@ -149,7 +149,7 @@ void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
     }*/
   }
 
-  //addObservers is called in OMTFReconstruction::beginRun after the omtfProc is constructed, therefore here we can used omtfProc
+  //addObservers is called in OMTFReconstruction::beginRun after the omtfProc is constructed, therefore here we can ptAssignment in omtfProc
   if (edmParameterSet.exists("neuralNetworkFile") && !ptAssignment) {
     edm::LogImportant("OMTFReconstruction") << "constructing PtAssignmentNNRegression" << std::endl;
     std::string neuralNetworkFile = edmParameterSet.getParameter<edm::FileInPath>("neuralNetworkFile").fullPath();
@@ -162,82 +162,109 @@ void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
     //omtfProcGoldenPat can be constructed from scratch each run, so ptAssignment is set herer every run
   }
 
-  //TODO un-comment when convertToOuputScalesPhase2 is implemented
-  /*
-  omtfProc->setOutpuConversionFunction([&](l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
-    return this->convertToOuputScalesPhase2(mtfType, gbCandidates);
-  }); */
+  omtfProc->setAssignQualityFunction(
+      [&](AlgoMuons::value_type& algoMuon) { this->assignQualityPhase2(algoMuon); });
 }
 
-void OmtfEmulation::getQualityFromFiredLayers(FinalMuon& finalMuon) {
-  auto it = firedLayersToQuality.find(finalMuon.getAlgoMuon()->getFiredLayerBits());
+void OmtfEmulation::assignQualityPhase2(AlgoMuons::value_type& algoMuon) {
+  if (abs(algoMuon->getEtaHw()) >= 121) { //TODO take into account the eta scale
+    algoMuon->setQuality(0); // changed from 4 on request from HI
+    return;
+  }
+
+  auto it = firedLayersToQuality.find(algoMuon->getFiredLayerBits());
+  if (algoMuon->getPtConstr() == 0) {
+    algoMuon->setQuality(0);  //default value
+    return;
+  }
+  
   if (it != firedLayersToQuality.end()) {
-    finalMuon.setQuality(it->second);
+    algoMuon->setQuality(it->second);
   } else {
-    finalMuon.setQuality(12);  //default value
+    algoMuon->setQuality(12);  //default value
   }
 };
 
-FinalMuons OmtfEmulation::convertToOuputScalesPhase2(unsigned int iProcessor,
-                                                     l1t::tftype mtfType,
-                                                     const AlgoMuons& gbCandidates) {
-  FinalMuons finalMuons;
-  auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
-  if (omtfProcGoldenPat) {
-    finalMuons = omtfProcGoldenPat->convertToOuputScalesPhase1(
-        iProcessor, mtfType, gbCandidates);  //temporary solution, TODO remove
+void OmtfEmulation::convertToGmtScalesPhase2(unsigned int iProcessor, l1t::tftype mtfType, FinalMuonPtr& finalMuon) {
+  //ptAssignment (NN) is used only if there was valid candidate from pattern logic
+  //it overrides the pt from the pattern logic
+  if (ptAssignment) {
+    //PtNNConstr should be in GeV
+    finalMuon->setPtGev(finalMuon->getAlgoMuon()->getPtNNConstr());
 
-    if (ptAssignment) {
-      for (auto& finalMuon : finalMuons) {
-        //TODO convert the pts to the GMT output scales
-        finalMuon.setPt(finalMuon.getAlgoMuon()->getPtNNConstr());
-        finalMuon.setPtUnconstr(finalMuon.getAlgoMuon()->getPtNNUnconstr());
-        finalMuon.setSign(finalMuon.getAlgoMuon()->getChargeNNConstr() < 0 ? 1 : 0);
-        //finalMuon.setQuality(finalMuon.getAlgoMuon()->getQualityNN());
-
-        getQualityFromFiredLayers(finalMuon);
-      }
-    }
-    //TODO add conversion of eta anf phi from gbCandidates to the GMT output scales
+    //TODO use getPtNNUnconstr when the network with upt is trained to set setPtUnconstrGev()
   }
-  return finalMuons;
+
+  //in getFinalMuons the PtGeV is set to 0 in this case, as it is like that for the phase-1.
+  //but it is better to set non-0 pt in this case, so we set 1 GeV
+  if (finalMuon->getAlgoMuon()->getPdfSumConstr() == 0 && finalMuon->getAlgoMuon()->getPtUnconstr() > 0)
+    finalMuon->setPtGev(1.0); //set to 1 GeV to be able to distinguish from pt=0, which means no candidate
+
+  int maxPtHw = (1 << Phase2L1GMT::BITSPT) - 1;
+
+  int ptHwConstr = (finalMuon->getPtGev() * (1. / Phase2L1GMT::LSBpt));
+
+  if (ptHwConstr >= maxPtHw)
+    ptHwConstr = maxPtHw;
+
+  finalMuon->setPtGmt(ptHwConstr);
+
+
+  int ptHwUnConstr = finalMuon->getPtUnconstrGev() * (1. / Phase2L1GMT::LSBpt);
+
+  if (ptHwUnConstr >= maxPtHw)
+    ptHwUnConstr = maxPtHw;
+
+  finalMuon->setPtUnconstrGmt(ptHwUnConstr);
+
+
+  if (mtfType == l1t::omtf_pos) {
+    finalMuon->setEtaGmt(finalMuon->getAlgoMuon()->getEtaHw());
+  }
+  else {
+    finalMuon->setEtaGmt((-1) * finalMuon->getAlgoMuon()->getEtaHw());
+  }
+
+  int globPhi = omtfConfig->procPhiOmtfToGlobalPhiOmtf(iProcessor, finalMuon->getAlgoMuon()->getPhi());
+  int gmtPhiBins = 1 << Phase2L1GMT::BITSPHI;
+  int omtfToGmtFactorPhi = std::lround(gmtPhiBins * (1 << 12) / double(omtfConfig->nPhiBins()) ) ;
+  int gmtPhi = (globPhi * omtfToGmtFactorPhi) >> 12;
+  finalMuon->setPhiGmt(gmtPhi);
+
+  int omtfToGmtFactorEta = std::lround(omtfConfig->etaUnit()  * (1 << 12) / Phase2L1GMT::LSBeta ) ;
+  int gmtEta = (finalMuon->getAlgoMuon()->getEtaHw() * omtfToGmtFactorEta) >> 12;
+  if (mtfType == l1t::omtf_neg)
+    gmtEta = -gmtEta;
+  finalMuon->setEtaGmt(gmtEta);
+
+  //finalMuon.setHwSignValid(1);
 }
 
 l1t::SAMuonCollection OmtfEmulation::getSAMuons(unsigned int iProcessor,
                                                 l1t::tftype mtfType,
                                                 FinalMuons& finalMuons,
-                                                bool uncostrainedPt) {
+                                                bool costrainedPt) {
   l1t::SAMuonCollection saMuons;
-
   for (auto& finalMuon : finalMuons) {
-    unsigned int qual = finalMuon.getQuality();
-    int charge = finalMuon.getSign();
+    convertToGmtScalesPhase2(iProcessor, mtfType, finalMuon);
 
-    //TODO remove the below conversions when the conversions in the convertToOuputScalesPhase2 are implemented.
-    ///N.B. the below conversions are from phase-1 uGMT scales to the phase-2 GMT scales.
-    //What is needed in the convertToOuputScalesPhase2 is conversion from OTMF internal scales to  the phase-2 GMT scales
-    unsigned int pt = 0;
-    if (!uncostrainedPt && finalMuon.getPt() > 0)
-      pt = round(finalMuon.getPt() * 0.5 / Phase2L1GMT::LSBpt);  // Phase-1 LSB 0.5GeV
-    if (uncostrainedPt && finalMuon.getPtUnconstr() > 0)
-      pt = round(finalMuon.getPtUnconstr() * 1.0 / Phase2L1GMT::LSBpt);  // Phase-1 LSB 1.0GeV!!
+    int charge = finalMuon->getSign();
 
-    // BEWARE: THIS CONVERSION IS ONLY VALID FOR OMTF
-    constexpr double p1phiLSB = 2 * M_PI / 576;
-    // From the uGMTConfiguration of OMTF. OMTF send in local phi!!
-    // all others correspond to 120 degree sectors = 192 in int-scale
-    int globPhi = iProcessor * 192 + finalMuon.getPhi();
-    // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
-    globPhi = (globPhi + 600) % 576;
-    int phi = round(globPhi * p1phiLSB / Phase2L1GMT::LSBphi);             // Phase-1 LSB (2*pi/576)
-    int eta = round(finalMuon.getEta() * 0.010875 / Phase2L1GMT::LSBeta);  // Phase-1 LSB 0.010875
+    unsigned int pt = costrainedPt ? finalMuon->getPtGmt() : finalMuon->getPtUnconstrGmt();
 
-    // FIXME: Below are not well defined in phase1 GMT
-    // Using the version from Correlator for now
-    int z0 = 0;  // No tracks info in Phase 1
+    LogTrace("OMTFReconstruction") << "OmtfEmulation::getSAMuons finalMuon->getPtGmt(): "
+        << finalMuon->getPtGmt() << " finalMuon->getPtUnconstrGmt() "<< finalMuon->getPtUnconstrGmt() << std::endl;
+
+    int phi = finalMuon->getPhiGmt(); 
+    int eta = finalMuon->getEtaGmt();  
+
+    int z0 = 0;  
     // Use 2 bits with LSB = 30cm for BMTF and 25cm for EMTF currently, but subjet to change
-    int d0 = finalMuon.getHwD0();
+    int d0 = 0; //finalMuon->getHwD0();
 
+    unsigned int qual = finalMuon->getQuality();
+
+    //TODO FIX
     //Here do not use the word format to GT but use the word format expected by GMT
     /*
     int bstart = 0;
@@ -254,23 +281,23 @@ l1t::SAMuonCollection OmtfEmulation::getSAMuons(unsigned int iProcessor,
 */
 
     // Calculate Lorentz Vector
-    math::PtEtaPhiMLorentzVector p4(pt * Phase2L1GMT::LSBpt, eta * Phase2L1GMT::LSBeta, phi * Phase2L1GMT::LSBphi, 0.0);
-    l1t::SAMuon saMuon(p4, charge, pt, eta, phi, z0, d0, qual);
-    saMuon.setTF(mtfType);
+	//TODO for the vertex constrained muon, the z0 and d0 by definition should be 0 - then why give it? 
+    math::PtEtaPhiMLorentzVector p4Constr(pt * Phase2L1GMT::LSBpt, eta * Phase2L1GMT::LSBeta, phi * Phase2L1GMT::LSBphi, 0.0);
+    l1t::SAMuon saMuonConstr(p4Constr, charge, pt, eta, phi, z0, d0, qual);
+    saMuonConstr.setTF(mtfType);
     //samuon.setWord(word);
 
-    if (saMuon.hwPt() > 0) {
-      saMuons.push_back(saMuon);
+    if (saMuonConstr.hwPt() > 0) {
+      saMuons.push_back(saMuonConstr);
     }
   }
 
   return saMuons;
 }
 
-std::unique_ptr<l1t::SAMuonCollection> OmtfEmulation::run(
+OmtfEmulation::OmtfOutptuCollections OmtfEmulation::run(
     const edm::Event& iEvent,
-    const edm::EventSetup& evSetup,
-    std::unique_ptr<l1t::RegionalMuonCandBxCollection>& candidates) {
+    const edm::EventSetup& evSetup) {
   LogTrace("l1tOmtfEventPrint") << "\n" << __FUNCTION__ << ":" << __LINE__ << " iEvent " << iEvent.id().event() << endl;
   inputMaker->loadAndFilterDigis(iEvent);
 
@@ -278,51 +305,53 @@ std::unique_ptr<l1t::SAMuonCollection> OmtfEmulation::run(
     obs->observeEventBegin(iEvent);
   }
 
-  std::unique_ptr<l1t::SAMuonCollection> saMuons = std::make_unique<l1t::SAMuonCollection>();
-  candidates->setBXRange(bxMin, bxMax);
+  OmtfOutptuCollections outptuCollections;
+  outptuCollections.constrSaMuons = std::make_unique<l1t::SAMuonCollection>();
+  outptuCollections.unConstrSaMuons = std::make_unique<l1t::SAMuonCollection>();
+  outptuCollections.regionalCandidates = std::make_unique<l1t::RegionalMuonCandBxCollection>();
+  outptuCollections.regionalCandidates->setBXRange(bxMin, bxMax);
+
+  FinalMuons allFinalMuons;
 
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
   for (int bx = bxMin; bx <= bxMax; bx++) {
-    for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
-      FinalMuons finalMuons = omtfProc->run(iProcessor, l1t::tftype::omtf_pos, bx, inputMaker.get(), observers);
+    for(unsigned int iSide = 0; iSide < 2; ++iSide) {
+      l1t::tftype mtfType = (iSide == 0) ? l1t::tftype::omtf_pos : l1t::tftype::omtf_neg;
+      for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
+        FinalMuons finalMuons = omtfProc->run(iProcessor, mtfType, bx, inputMaker.get(), observers);
 
-      l1t::SAMuonCollection procSAMuons = getSAMuons(iProcessor, l1t::tftype::omtf_pos, finalMuons, false);
+        //getRegionalMuonCands calls convertToGmtScalesPhase1, it sets value eta, phi, pt finalMuons
+        //so regionalCandidates have values in phase-1 scales
+        std::vector<l1t::RegionalMuonCand> candMuons =
+            omtfProc->getRegionalMuonCands(iProcessor, mtfType, finalMuons);
+        for (auto& candMuon : candMuons) {
+          outptuCollections.regionalCandidates->push_back(bx, candMuon);
+        }
 
-      //fill outgoing collection
-      for (auto& saMuon : procSAMuons) {
-        saMuons->push_back(saMuon);
-      }
+        for (auto& finalMuon : finalMuons) {
+          convertToGmtScalesPhase2(iProcessor, mtfType, finalMuon);
+        }
 
-      std::vector<l1t::RegionalMuonCand> candMuons =
-          omtfProc->getRegionalMuonCands(iProcessor, l1t::tftype::omtf_pos, finalMuons);
-      for (auto& candMuon : candMuons) {
-        candidates->push_back(bx, candMuon);
-      }
-    }
+        l1t::SAMuonCollection constrSAMuons = getSAMuons(iProcessor, mtfType, finalMuons, true);
+        for (auto& saMuon : constrSAMuons) {
+          outptuCollections.unConstrSaMuons->push_back(saMuon);
+        }
 
-    for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
-      FinalMuons finalMuons = omtfProc->run(iProcessor, l1t::tftype::omtf_neg, bx, inputMaker.get(), observers);
+        l1t::SAMuonCollection unconstrSAMuons = getSAMuons(iProcessor, mtfType, finalMuons, false);
+        for (auto& saMuon : unconstrSAMuons) {
+          outptuCollections.unConstrSaMuons->push_back(saMuon);
+        }
 
-      l1t::SAMuonCollection procSAMuons = getSAMuons(iProcessor, l1t::tftype::omtf_neg, finalMuons, false);
-      //fill outgoing collection
-      for (auto& saMuon : procSAMuons) {
-        saMuons->push_back(saMuon);
-      }
-
-      std::vector<l1t::RegionalMuonCand> candMuons =
-          omtfProc->getRegionalMuonCands(iProcessor, l1t::tftype::omtf_neg, finalMuons);
-      for (auto& candMuon : candMuons) {
-        candidates->push_back(bx, candMuon);
+        allFinalMuons.insert(allFinalMuons.end(), finalMuons.begin(), finalMuons.end());
       }
     }
 
     //edm::LogInfo("OMTFReconstruction") <<"OMTF:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;
   }
 
-  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << endl;
   for (auto& obs : observers) {
-    obs->observeEventEnd(iEvent, candidates);
+    obs->observeEventEnd(iEvent, allFinalMuons);
   }
 
-  return saMuons;
+  return outptuCollections;
 }

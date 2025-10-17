@@ -26,6 +26,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
   boost::property_tree::ptree procDataTree;
 
+  std::map<std::string, boost::property_tree::ptree> chamberTrees;
+
   for (const auto& digiIt : *dtPhDigis->getContainer()) {
     DTChamberId detid(digiIt.whNum(), digiIt.stNum(), digiIt.scNum() + 1);
 
@@ -37,7 +39,11 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     if (digiIt.bxNum() - 20 >= bxFrom && digiIt.bxNum() - 20 <= bxTo) {
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product(), iProcessor, procTyp);
 
-      auto& dtP2PhiDigi = procDataTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
+      std::ostringstream chamberName;
+      //chamberName<<detid;
+      chamberName<<"DT_Wh" << digiIt.whNum() <<"_St_" << digiIt.stNum() << "_Se_" << digiIt.scNum() + 1;
+      auto& dtChamberTree = chamberTrees[chamberName.str()];
+      auto& dtP2PhiDigi = dtChamberTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
       dtP2PhiDigi.add("<xmlattr>.whNum", digiIt.whNum());
       dtP2PhiDigi.add("<xmlattr>.scNum", digiIt.scNum());
       dtP2PhiDigi.add("<xmlattr>.stNum", digiIt.stNum());
@@ -55,7 +61,11 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         addDTetaStubs(muonStubsInLayers, thetaDigi, iProcessor, procTyp);
       }
 
-      auto& dtP2ThDigi = procDataTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
+      std::ostringstream chamberName;
+      //chamberName<<detid;
+      chamberName<<"DT_Wh" << thetaDigi.whNum() <<"_St_" << thetaDigi.stNum() << "_Se_" << thetaDigi.scNum() + 1;
+      auto& dtChamberTree = chamberTrees[chamberName.str()];
+      auto& dtP2ThDigi = dtChamberTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
       dtP2ThDigi.add("<xmlattr>.whNum", thetaDigi.whNum());
       dtP2ThDigi.add("<xmlattr>.scNum", thetaDigi.scNum());
       dtP2ThDigi.add("<xmlattr>.stNum", thetaDigi.stNum());
@@ -66,8 +76,13 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
   }
 
+  for(auto& chamberTree : chamberTrees) {
+    chamberTree.second.add("<xmlattr>.name", chamberTree.first);
+    procDataTree.add_child("dtChamber", chamberTree.second);
+  }
+
   for (auto& obs : observers)
-    obs->addProcesorData("linkData", procDataTree);
+    obs->addProcesorData("dtData", procDataTree);
 }
 
 //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)

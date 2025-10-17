@@ -49,7 +49,7 @@ protected:
   //candidate found by omtf in a given event
   AlgoMuons::value_type omtfCand;
 
-  FinalMuon finalMuon;
+  FinalMuonPtr finalMuon;
 
   //AlgoMuons algoCandidates;
 

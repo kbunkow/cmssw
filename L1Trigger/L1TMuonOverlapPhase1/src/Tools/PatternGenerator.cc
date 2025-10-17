@@ -133,7 +133,7 @@ void PatternGenerator::updateStat() {
   }
 
   simMuEta->Fill(simMuon->momentum().eta());
-  candEta->Fill(omtfConfig->hwEtaToEta(finalMuon.getEta()));
+  candEta->Fill(finalMuon->getEtaRad());
 
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type() / -13 : 0;
@@ -204,7 +204,7 @@ void PatternGenerator::updateStatUsingMatcher2() {
       //&& matchingResult.muonCand->hwQual() >= 12 &&
       //matchingResult.muonCand->hwPt() > 38
 
-      AlgoMuon* algoMuon = matchingResult.procMuon.get();
+      AlgoMuon* algoMuon = matchingResult.muonCand->getAlgoMuon().get();
       if (!algoMuon) {
         edm::LogImportant("l1tOmtfEventPrint") << ":" << __LINE__ << " algoMuon is null" << std::endl;
         throw runtime_error("algoMuon is null");
@@ -228,7 +228,7 @@ void PatternGenerator::updateStatUsingMatcher2() {
       eventCntPerGp[exptPatNum]++;
 
       candProcIndx =
-          omtfConfig->getProcIndx(matchingResult.muonCand->processor(), matchingResult.muonCand->trackFinderType());
+          omtfConfig->getProcIndx(matchingResult.muonCand->getProcessor(), matchingResult.muonCand->trackFinderType());
 
       //edm::LogImportant("l1tOmtfEventPrint")<<"\n" <<__FUNCTION__<<": "<<__LINE__<<" exptCandGp "<<exptCandGp->key()<<" candProcIndx "<<candProcIndx<<" ptSim "<<ptSim<<" chargeSim "<<chargeSim<<std::endl;
 
@@ -319,15 +319,14 @@ void PatternGenerator::updateStatUsingMatcher2() {
   }
 }
 
-void PatternGenerator::observeEventEnd(const edm::Event& iEvent,
-                                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
+void PatternGenerator::observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {
   if (simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)  //no sim muon or empty candidate
     return;
 
   if (abs(simMuon->momentum().eta()) < 0.8 || abs(simMuon->momentum().eta()) > 1.24)
     return;
 
-  PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
+  PatternOptimizerBase::observeEventEnd(iEvent, finalMuons);
 
   //updateStat();
   //updateStatUsingMatcher2();

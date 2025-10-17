@@ -448,59 +448,20 @@ void PtAssignmentNNRegression::run(AlgoMuons::value_type& algoMuon,
 
   //algoMuon->setPtNNConstr(omtfConfig->ptGevToHw(calibratedHwPt));
 
-  int ptHw = round(nnResult.at(0) / Phase2L1GMT::LSBpt);
-  int maxPtHw =
-      (1 << 13) - 1;  //TODO take it from DataFormats/L1TMuonPhase2/interface/Constants.h once it is established there
-  if (ptHw >= maxPtHw)
-    ptHw = maxPtHw;
-  algoMuon->setPtNNConstr(ptHw);
 
-  if (algoMuon->getQ() <= 1)
-    algoMuon->setQualityNN(algoMuon->getQ());
-  else {
-    auto pt1 = nnResult.at(1);
-    int qual = 2;
-    //LUT from this formula:
-    //int nnQuality = 0.0403 * pow(pt1, 3) - 0.9192 * pow(pt1, 2) + 7.9698 * pt1 - 10.586;
-    if (pt1 <= 2.00)
-      qual = 2;
-    else if (pt1 <= 2.22)
-      qual = 3;
-    else if (pt1 <= 2.45)
-      qual = 4;
-    else if (pt1 <= 2.7)
-      qual = 5;
-    else if (pt1 <= 2.97)
-      qual = 6;
-    else if (pt1 <= 3.26)
-      qual = 7;
-    else if (pt1 <= 3.58)
-      qual = 8;
-    else if (pt1 <= 3.94)
-      qual = 9;
-    else if (pt1 <= 4.35)
-      qual = 10;
-    else if (pt1 <= 4.83)
-      qual = 11;
-    else if (pt1 <= 5.40)
-      qual = 12;
-    else if (pt1 <= 6.13)
-      qual = 13;
-    else if (pt1 <= 7.00)
-      qual = 14;
-    else if (pt1 <= 8.00)
-      qual = 15;
+  //here the pts are GeV
+  double omtfPt = omtfConfig->hwPtToGev(algoMuon->getPtConstr());
+  double combinedPt = nnResult.at(0);
+  if( (nnResult.at(0) - omtfPt)  > 0.75 * omtfPt)
+    combinedPt = omtfPt;
 
-    algoMuon->setQualityNN(qual);
-  }
+  algoMuon->setPtNNConstr(combinedPt);
 
   algoMuon->setChargeNNConstr(charge);
 
-  //TODO this is placeholder, the PtNNUnconstr should be set based on the NN outputs with p_displ
-  int ptHwUnconstr = round(nnResult.at(0) / Phase2L1GMT::LSBpt);
-  if (ptHwUnconstr >= maxPtHw)
-    ptHwUnconstr = maxPtHw;
-  algoMuon->setPtNNUnconstr(ptHwUnconstr);
+  //TODOO uncomment when NN with upt is ready
+  //int ptHwUnconstr = round(nnResult.at(??) );
+  //algoMuon->setPtNNUnconstr(ptHwUnconstr);
 
   algoMuon->setNnOutputs(nnResult);
 

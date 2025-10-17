@@ -45,8 +45,7 @@ public:
 
   virtual void observeEventBegin(const edm::Event& iEvent) {}
 
-  virtual void observeEventEnd(const edm::Event& iEvent,
-                               std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {};
+  virtual void observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {};
 
   virtual void endJob() = 0;
 };

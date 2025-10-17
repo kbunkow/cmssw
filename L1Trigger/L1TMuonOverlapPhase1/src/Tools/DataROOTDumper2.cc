@@ -93,8 +93,7 @@ void DataROOTDumper2::observeProcesorEmulation(unsigned int iProcessor,
                                                const AlgoMuons& gbCandidates,
                                                const FinalMuons& finalMuons) {}
 
-void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
-                                      std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
+void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {
   /*
   int muonCharge = 0;
   if (simMuon) {
@@ -143,10 +142,10 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
 
     for (auto& matchingResult : matchingResults) {
       edm::LogVerbatim("l1tOmtfEventPrint") << "matchingResult: genPt " << matchingResult.genPt;
-      if (matchingResult.procMuon)
+      if (matchingResult.muonCand)
         edm::LogVerbatim("l1tOmtfEventPrint")
-            << " procMuon.PtConstr " << matchingResult.procMuon->getPtConstr() << " processor "
-            << matchingResult.muonCand->processor() << " hwPhi " << matchingResult.muonCand->hwPhi();
+            << " procMuon.PtConstr " << matchingResult.muonCand->getAlgoMuon()->getPtConstr() << " processor "
+            << matchingResult.muonCand->getProcessor() << " hwPhi " << matchingResult.muonCand->getAlgoMuon()->getPhi();
       else
         edm::LogVerbatim("l1tOmtfEventPrint") << " no procMuon" << std::endl;
     }
@@ -264,11 +263,11 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       omtfEvent.muonRho = 0;
     }
 
-    auto addOmtfCand = [&](AlgoMuonPtr& procMuon, const l1t::RegionalMuonCand* muonCand) {
+    auto addOmtfCand = [&](FinalMuonPtr muonCand) {
       //the charge is only for the constrained measurement. The constrained measurement is always defined for a valid candidate
-      if (procMuon->getPdfSumConstr() > 0 && procMuon->getFiredLayerCntConstr() >= 3)
-        omtfEvent.omtfPt = omtfConfig->hwPtToGev(procMuon->getPtConstr());
-      else if (procMuon->getPtUnconstr() > 0)
+      if (muonCand->getAlgoMuon()->getPdfSumConstr() > 0 && muonCand->getAlgoMuon()->getFiredLayerCntConstr() >= 3)
+        omtfEvent.omtfPt = muonCand->getPtGev();
+      else if (muonCand->getAlgoMuon()->getPtUnconstr() > 0)
         //if myCand->getPdfSumConstr() == 0, the myCand->getPtConstr() might not be 0, see the end of GhostBusterPreferRefDt::select
         //but hwPt=0 means empty candidate, hwPt=1 means pt=0,
         //but omtfPt = 0 means empty candidate
@@ -280,26 +279,26 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
 
       //for candidate with no unconstrained measurement, hardware upt = 0
       //so then omtfEvent.omtfUPt is -1
-      omtfEvent.omtfUPt = omtfConfig->hwUPtToGev(procMuon->getPtUnconstr());
+      omtfEvent.omtfUPt = muonCand->getPtUnconstrGev();
       //omtfEvent.omtfEta = omtfConfig->hwEtaToEta(procMuon->getEtaHw());
-      omtfEvent.omtfEta = omtfConfig->hwEtaToEta(muonCand->hwEta());
-      omtfEvent.omtfPhi = procMuon->getPhi();
-      omtfEvent.omtfCharge = procMuon->getChargeConstr();
-      omtfEvent.omtfScore = procMuon->getPdfSum();
+      omtfEvent.omtfEta = muonCand->getEtaRad();
+      omtfEvent.omtfPhi = muonCand->getPhiRad();
+      omtfEvent.omtfCharge = muonCand->getAlgoMuon()->getChargeConstr();
+      omtfEvent.omtfScore = muonCand->getAlgoMuon()->getPdfSum();
 
-      omtfEvent.omtfHwEta = procMuon->getEtaHw();
+      omtfEvent.omtfHwEta = muonCand->getAlgoMuon()->getEtaHw();
 
-      omtfEvent.omtfFiredLayers = procMuon->getFiredLayerBits();
-      omtfEvent.omtfRefLayer = procMuon->getRefLayer();
-      omtfEvent.omtfRefHitNum = procMuon->getRefHitNumber();
+      omtfEvent.omtfFiredLayers = muonCand->getAlgoMuon()->getFiredLayerBits();
+      omtfEvent.omtfRefLayer = muonCand->getAlgoMuon()->getRefLayer();
+      omtfEvent.omtfRefHitNum = muonCand->getAlgoMuon()->getRefHitNumber();
 
       omtfEvent.hits.clear();
 
       //TODO choose, which gpResult should be dumped
       //auto& gpResult = procMuon->getGpResultConstr();
-      auto& gpResult = (procMuon->getGpResultUnconstr().getPdfSumUnconstr() > procMuon->getGpResultConstr().getPdfSum())
-                           ? procMuon->getGpResultUnconstr()
-                           : procMuon->getGpResultConstr();
+      auto& gpResult = (muonCand->getAlgoMuon()->getGpResultUnconstr().getPdfSumUnconstr() > muonCand->getAlgoMuon()->getGpResultConstr().getPdfSum())
+                           ? muonCand->getAlgoMuon()->getGpResultUnconstr()
+                           : muonCand->getAlgoMuon()->getGpResultConstr();
 
       omtfEvent.omtfRefHitPhi = gpResult.getRefHitPhi();
 
@@ -323,7 +322,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
           //hit.eta = stubResult.getMuonStub()->etaHw;  //replaced by deltaR
           hit.valid = stubResult.getValid();
 
-          unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[procMuon->getRefLayer()];
+          unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[muonCand->getAlgoMuon()->getRefLayer()];
 
           if (false) {  //choose what to dump in hit.phiDist: "hitPhi - phiRefHit" or stubResult.getDeltaPhi()
             int hitPhi = stubResult.getMuonStub()->phiHw;
@@ -382,29 +381,29 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       }
 
       LogTrace("l1tOmtfEventPrint") << "DataROOTDumper2::observeEventEnd adding omtfCand : " << std::endl;
-      auto finalCandidate = matchingResult.muonCand;
-      LogTrace("l1tOmtfEventPrint") << " hwPt " << finalCandidate->hwPt() << " hwSign " << finalCandidate->hwSign()
-                                    << " hwQual " << finalCandidate->hwQual() << " hwEta " << std::setw(4)
-                                    << finalCandidate->hwEta() << std::setw(4) << " hwPhi " << finalCandidate->hwPhi()
-                                    << "    eta " << std::setw(9) << (finalCandidate->hwEta() * 0.010875)
-                                    << " isKilled " << procMuon->isKilled() << " tRefLayer " << procMuon->getRefLayer()
-                                    << " RefHitNumber " << procMuon->getRefHitNumber() << std::endl;
+  
+      LogTrace("l1tOmtfEventPrint") << " hwPt " <<  matchingResult.muonCand->getAlgoMuon()->getPtConstr() << " hwSign " << matchingResult.muonCand->getAlgoMuon()->getChargeConstr()
+                                    << " hwQual " << matchingResult.muonCand->getQuality() << " hwEta " << std::setw(4)
+                                    << matchingResult.muonCand->getAlgoMuon()->getEtaHw() << std::setw(4) << " hwPhi " << matchingResult.muonCand->getAlgoMuon()->getPhi()
+                                    << "    eta " << std::setw(9) << matchingResult.muonCand->getEtaRad()
+                                    << " isKilled " << matchingResult.muonCand->getAlgoMuon()->isKilled() << " tRefLayer " << matchingResult.muonCand->getAlgoMuon()->getRefLayer()
+                                    << " RefHitNumber " << matchingResult.muonCand->getAlgoMuon()->getRefHitNumber() << std::endl;
     };
 
-    if (matchingResult.muonCand && matchingResult.procMuon->getPtConstr() > 0 &&
-        matchingResult.muonCand->hwQual() >= 1) {
+    if (matchingResult.muonCand && matchingResult.muonCand->getAlgoMuon()->getPtConstr() > 0 &&
+        matchingResult.muonCand->getQuality() >= 1) {
       //TODO set the quality, quality 0 has the candidates with eta > 1.3(?) EtaHw >= 121
       //&& matchingResult.genPt < 20
 
-      omtfEvent.omtfQuality = matchingResult.muonCand->hwQual();  //procMuon->getQ();
+      omtfEvent.omtfQuality = matchingResult.muonCand->getQuality();  //procMuon->getQ();
       omtfEvent.killed = false;
-      omtfEvent.omtfProcessor = matchingResult.muonCand->processor();
+      omtfEvent.omtfProcessor = matchingResult.muonCand->getProcessor();
 
       if (matchingResult.muonCand->trackFinderType() == l1t::omtf_neg) {
         omtfEvent.omtfProcessor *= -1;
       }
 
-      addOmtfCand(matchingResult.procMuon, matchingResult.muonCand);
+      addOmtfCand(matchingResult.muonCand);
       rootTree->Fill();
 
       /* TODO there are a few problems with dumping the killed muons: there is no procMuon for them, so the global eta and omtfProcessor are not available

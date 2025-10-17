@@ -170,15 +170,15 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
 
   for (auto& finalMuon : finalMuons) {
     auto& candMuonTree = procTree.add("CandMuon", "");
-    candMuonTree.add("<xmlattr>.hwEta", finalMuon.getEta());
-    candMuonTree.add("<xmlattr>.hwPhi", finalMuon.getPhi());
-    candMuonTree.add("<xmlattr>.hwPt", finalMuon.getPt());
-    candMuonTree.add("<xmlattr>.hwUPt", finalMuon.getPtUnconstr());
-    candMuonTree.add("<xmlattr>.hwQual", finalMuon.getQuality());
-    candMuonTree.add("<xmlattr>.hwSign", finalMuon.getSign());
+    candMuonTree.add("<xmlattr>.hwEta", finalMuon->getEtaGmt());
+    candMuonTree.add("<xmlattr>.hwPhi", finalMuon->getPhiGmt());
+    candMuonTree.add("<xmlattr>.hwPt", finalMuon->getPtGmt());
+    candMuonTree.add("<xmlattr>.hwUPt", finalMuon->getPtUnconstrGmt());
+    candMuonTree.add("<xmlattr>.hwQual", finalMuon->getQuality());
+    candMuonTree.add("<xmlattr>.hwSign", finalMuon->getSign());
     candMuonTree.add("<xmlattr>.hwSignValid", 1);
     candMuonTree.add("<xmlattr>.hwTrackAddress",
-                     std::bitset<29>(finalMuon.getAlgoMuon()->getFiredLayerBits()));  //TODO has no sense for phase-2
+                     std::bitset<29>(finalMuon->getAlgoMuon()->getFiredLayerBits()));  //TODO has no sense for phase-2
     candMuonTree.add("<xmlattr>.link",
                      (mtfType == l1t::omtf_neg ? 60 + iProcessor : 42 + iProcessor));  //TODO has no sense for phase-2
     candMuonTree.add("<xmlattr>.processor", iProcessor);
@@ -207,8 +207,7 @@ void XMLEventWriter::observeEventBegin(const edm::Event& iEvent) {
   eventTree->add("<xmlattr>.iBx", 2 * eventId);
 }
 
-void XMLEventWriter::observeEventEnd(const edm::Event& iEvent,
-                                     std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {}
+void XMLEventWriter::observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {}
 
 void XMLEventWriter::endJob() {
   edm::LogInfo("l1tOmtfEventPrint") << "XMLEventWriter::endJob() - writing the data to the xml - starting";

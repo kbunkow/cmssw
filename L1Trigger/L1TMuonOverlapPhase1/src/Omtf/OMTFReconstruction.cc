@@ -283,6 +283,8 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
   std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates = std::make_unique<l1t::RegionalMuonCandBxCollection>();
   candidates->setBXRange(bxMin, bxMax);
 
+  FinalMuons allFinalMuons;
+
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
   for (int bx = bxMin; bx <= bxMax; bx++) {
     for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
@@ -295,6 +297,8 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
       for (auto& candMuon : candMuons) {
         candidates->push_back(bx, candMuon);
       }
+
+      allFinalMuons.insert(allFinalMuons.end(), finalMuons.begin(), finalMuons.end());
     }
 
     for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
@@ -306,13 +310,15 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
       for (auto& candMuon : candMuons) {
         candidates->push_back(bx, candMuon);
       }
+
+      allFinalMuons.insert(allFinalMuons.end(), finalMuons.begin(), finalMuons.end());
     }
 
     //edm::LogInfo("OMTFReconstruction") <<"OMTF:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;
   }
 
   for (auto& obs : observers) {
-    obs->observeEventEnd(iEvent, candidates);
+    obs->observeEventEnd(iEvent, allFinalMuons);
   }
 
   return candidates;

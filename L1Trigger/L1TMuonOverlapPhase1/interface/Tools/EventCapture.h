@@ -38,8 +38,7 @@ public:
 
   void observeEventBegin(const edm::Event& event) override;
 
-  void observeEventEnd(const edm::Event& event,
-                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
+  void observeEventEnd(const edm::Event& event, FinalMuons& finalMuons) override;
 
   void endJob() override;
 

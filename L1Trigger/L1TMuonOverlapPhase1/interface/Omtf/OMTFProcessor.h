@@ -100,7 +100,11 @@ public:
     return ghostBuster->select(refHitCands, charge);
   }
 
-  FinalMuons convertToOuputScalesPhase1(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates);
+  void assignQualityPhase1(AlgoMuons::value_type& algoMuon);
+ 
+  FinalMuons getFinalMuons(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates);
+  
+  void convertToGmtScalesPhase1(unsigned int iProcessor, l1t::tftype mtfType, FinalMuonPtr& finalMuon);
 
   std::vector<l1t::RegionalMuonCand> getRegionalMuonCands(unsigned int iProcessor,
                                                           l1t::tftype mtfType,
@@ -114,10 +118,10 @@ public:
 
   virtual void setPtAssignment(PtAssignmentBase* ptAssignment) { this->ptAssignment = ptAssignment; }
 
-  void setOutpuConversionFunction(
-      std::function<FinalMuons(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates)>
-          convertToOuputScales) {
-    this->convertToOuputScales = convertToOuputScales;
+
+  void setAssignQualityFunction(
+      std::function<void(AlgoMuons::value_type& algoMuon)> assignQuality) override {
+    this->assignQuality = assignQuality;
   }
 
   FinalMuons run(unsigned int iProcessor,
@@ -146,8 +150,7 @@ private:
 
   std::unique_ptr<IGhostBuster> ghostBuster;
 
-  std::function<FinalMuons(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates)>
-      convertToOuputScales;
+  std::function<void(AlgoMuons::value_type& algoMuon)> assignQuality;
 
   //ptAssignment should be destroyed where it is created, i.e. by OmtfEmulation or OMTFReconstruction
   PtAssignmentBase* ptAssignment = nullptr;

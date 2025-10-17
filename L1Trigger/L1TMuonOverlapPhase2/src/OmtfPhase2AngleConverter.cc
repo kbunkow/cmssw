@@ -1,15 +1,5 @@
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
 
-namespace {
-  int sgn(float val) { return (0 < val) - (val < 0); }
-
-  int etaVal2CodePhase2(float etaVal) {
-    int sign = sgn(etaVal);
-    int code = (int)round(fabs(etaVal) * 115 / 1.25);
-    return sign * code;
-  }
-}  // namespace
-
 int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const {
   constexpr int dtPhiBins = 65536;          //65536. for [-0.5,0.5] radians
   double hsPhiPitch = 2 * M_PI / nPhiBins;  // width of phi Pitch, related to halfStrip at CSC station 2
@@ -45,8 +35,7 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
         thetaDigi.scNum() == (dTChamberId.sector() - 1) && (thetaDigi.bxNum() - 20) == bxNum) {
       // get the theta digi
       float k = thetaDigi.k() * kconv;  //-pow(-1.,z<0)*log(tan(atan(1/k)/2.));
-      int sign = sgn(thetaDigi.z());    // sign of the z coordinate
-      eta = -1. * sign * log(fabs(tan(atan(1 / k) / 2.)));
+      eta = -1. * std::copysign( log(fabs(tan(atan(1 / k) / 2.))),  thetaDigi.z() );
       LogTrace("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") eta: " << eta
                                      << " k: " << k << " thetaDigi.k(): " << thetaDigi.k();
 
@@ -69,15 +58,16 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
     foundeta = false;
 
   if (foundeta) {
-    return std::abs(etaVal2CodePhase2(eta));
+    //return std::abs(config->etaToHwEta(eta)); TODO use this version
+    return std::abs(std::lround(eta * 92));
   } else {
     //Returning eta of the chamber middle
     if (dTChamberId.station() == 1)
-      eta = 92;
+      eta = config->mb1W2Eta();
     else if (dTChamberId.station() == 2)
-      eta = 79;
+      eta = config->mb2W2Eta();
     else if (dTChamberId.station() == 3)
-      eta = 75;
+      eta = config->mb3W2Eta();
 
     return eta;
   }

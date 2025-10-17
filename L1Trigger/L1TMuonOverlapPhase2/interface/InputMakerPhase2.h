@@ -11,7 +11,6 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTThContainer.h"
-#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
 

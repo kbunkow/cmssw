@@ -214,6 +214,14 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams) {
 
     setGhostBusterType("byRefLayer");
   }
+
+  //phase-2
+  if (fwVersion() >= 0x0210) {
+    //like in DataFormats/L1TMuonPhase2/interface/Constants.h
+    const int BITSETA = 13;
+    const float LSBeta = 2. * M_PI / pow(2, BITSETA);
+    etaUnit_ = LSBeta;
+  }
 }
 
 void OMTFConfiguration::configureFromEdmParameterSet(const edm::ParameterSet &edmParameterSet) {
@@ -403,15 +411,6 @@ uint32_t OMTFConfiguration::getLayerNumber(uint32_t rawId) const {
   return hwNumber;
 }
 
-int OMTFConfiguration::calcGlobalPhi(int locPhi, int proc) const {
-  int globPhi = 0;
-  //60 degree sectors = 96 in int-scale
-  globPhi = (proc) * 96 * 6 / nProcessors() + locPhi;
-  // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
-  globPhi = (globPhi + 600) % 576;
-  return globPhi;
-}
-
 unsigned int OMTFConfiguration::eta2Bits(unsigned int eta) {
   if (eta == 73)
     return 0b100000000;
@@ -543,12 +542,15 @@ int OMTFConfiguration::getProcScalePhi(unsigned int iProcessor, double phiRad) c
   return lround((phiRad - phi15deg) / phiUnit);  //FIXME lround or floor ???
 }
 
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-double OMTFConfiguration::procHwPhiToGlobalPhi(int procHwPhi, int procHwPhi0) const {
-  int globalHwPhi = foldPhi(procHwPhi + procHwPhi0);
-  const double phiUnit = 2 * M_PI / nPhiBins();  //rad/unit
-  return globalHwPhi * phiUnit;
+
+//returns the global phi in the OMTF scale
+int OMTFConfiguration::procPhiOmtfToGlobalPhiOmtf(unsigned int iProcessor, int procHwPhi) const {
+  //24 is 360 deg / 15 deg, 15 deg is the offset of the processor internal scale versus CMS phi = 0 rad
+  int globalPhi = iProcessor * nPhiBins() / nProcessors() + procHwPhi + nPhiBins() / 24;
+  // Handle wrap-around with %. Add nPhiBins to make sure the number is positive
+  globalPhi = (globalPhi + nPhiBins()) % nPhiBins();
+
+  return globalPhi;
 }
 
 ///////////////////////////////////////////////
