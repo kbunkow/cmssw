@@ -9,6 +9,7 @@
   <use name="Geometry/RPCGeometry"/>  
   <use name="root"/> 
   <use name="xerces-c"/>
+  <use name="Utilities/Xerces"/>
 </export>
 
 <flags ADD_SUBDIR="1"/>

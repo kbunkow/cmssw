@@ -31,7 +31,7 @@ OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& parameterSet, Mu
       omtfConfig(new OMTFConfiguration()),
       omtfProc(nullptr),
       m_OMTFConfigMaker(nullptr) {
-  edmParameterSet.copyForModify(parameterSet);
+  edmParameterSet.copyForModify(parameterSet); //why edmParameterSet is not reference?
 
   bxMin = edmParameterSet.exists("bxMin") ? edmParameterSet.getParameter<int>("bxMin") : 0;
   bxMax = edmParameterSet.exists("bxMax") ? edmParameterSet.getParameter<int>("bxMax") : 0;
@@ -123,7 +123,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
     XMLConfigReader xmlConfigReader;
     xmlConfigReader.setConfigFile(fName);
 
-    omtfParams.reset(new L1TMuonOverlapParams());
+    omtfParams = std::make_unique<L1TMuonOverlapParams>();
     xmlConfigReader.readConfig(omtfParams.get());
 
     //getPatternsVersion() parses the entire patterns xml - si it is very inefficient
